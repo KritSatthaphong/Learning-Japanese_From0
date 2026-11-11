@@ -1,0 +1,35 @@
+/*
+ * hubs.js — หน้ารวมเมนูของแถบ ทบทวน / ฝึกพูด / เพิ่มเติม
+ * รายการที่ยังไม่มีลิงก์ (href) จะแสดงป้าย "เฟส N"
+ */
+(function () {
+  'use strict';
+  var NS = window.NS = window.NS || {};
+
+  NS.pages.review = function (root) {
+    NS.ui.hub(root, 'ทบทวน', 'ทบทวนสิ่งที่เรียนไปแล้ว เพื่อให้จำได้นาน', [
+      { icon: '復', title: 'ทบทวนตามรอบ (SRS)', desc: 'ระบบเตือนให้ทบทวนตอนที่ใกล้จะลืม', phase: 4 },
+      { icon: '誤', title: 'สมุดคำผิด', desc: 'รวมข้อที่เคยตอบผิด ฝึกจนถูก 3 ครั้งติด', phase: 4 },
+      { icon: '耳', title: 'ฟังแยกเสียงที่คล้ายกัน', desc: 'おばさん / おばあさん, きて / きって', phase: 2 },
+      { icon: '遊', title: 'เกมจับคู่จับเวลา', desc: '60 วินาที จับคู่ให้ได้มากที่สุด', phase: 6 }
+    ]);
+  };
+
+  NS.pages.speak = function (root) {
+    NS.ui.hub(root, 'ฝึกพูด', 'พูดใส่ไมค์แล้วให้แอปตรวจ หรือคุยกับ AI', [
+      { icon: '話', title: 'Speaking Check', desc: 'พูดวลี แล้วดูว่าตรงแค่ไหน + อัดเสียงฟังเทียบ', phase: 5 },
+      { icon: '句', title: 'Phrasebook', desc: 'วลีเอาตัวรอดแยกตามสถานการณ์', phase: 3 },
+      { icon: 'AI', title: 'Prompt Library', desc: 'prompt สำเร็จรูปให้ ChatGPT/Claude เล่นบทบาทคุยด้วย', phase: 7 }
+    ]);
+  };
+
+  NS.pages.more = function (root) {
+    NS.ui.hub(root, 'เพิ่มเติม', '', [
+      { icon: '札', title: 'เด็คของฉัน', desc: 'เพิ่มวลีเองจากอนิเมะหรือเพื่อนญี่ปุ่น', phase: 4 },
+      { icon: '試', title: 'Pre/Post Test', desc: 'วัดผลก่อน-หลังเรียน พร้อมกราฟและ CSV', phase: 5 },
+      { icon: '暦', title: 'ปฏิทินการเรียน', desc: 'เป้าหมายรายวัน + heatmap 12 สัปดาห์', phase: 2 },
+      { icon: '報', title: 'สรุปรายงาน PGP', desc: 'สรุปผลการเรียนสำหรับใส่รายงาน', phase: 7 },
+      { icon: '⚙', title: 'ตั้งค่า', desc: 'ความเร็วเสียง, เปิดทุกด่าน, ธีม, ล้างข้อมูล', href: '#/settings' }
+    ]);
+  };
+})();

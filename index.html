@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Nihongo Survival — เว็บแอปเรียนภาษาญี่ปุ่นจากศูนย์ แบบเส้นทางเรียนมีไกด์">
+  <meta name="theme-color" content="#c8382f">
+  <title>Nihongo Survival</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="#/home" class="brand"><span class="brand-jp" lang="ja">日本語</span> Nihongo Survival</a>
+    <a href="#/settings" class="icon-btn" aria-label="ตั้งค่า">⚙</a>
+  </header>
+
+  <div id="banner"></div>
+
+  <main id="app" tabindex="-1"></main>
+
+  <nav class="tabbar" aria-label="เมนูหลัก">
+    <a href="#/home" data-tab="learn"><span class="ico" lang="ja" aria-hidden="true">学</span><span>เรียน</span></a>
+    <a href="#/review" data-tab="review"><span class="ico" lang="ja" aria-hidden="true">復</span><span>ทบทวน</span></a>
+    <a href="#/chart" data-tab="chart"><span class="ico" lang="ja" aria-hidden="true">あ</span><span>ตัวอักษร</span></a>
+    <a href="#/speak" data-tab="speak"><span class="ico" lang="ja" aria-hidden="true">話</span><span>ฝึกพูด</span></a>
+    <a href="#/more" data-tab="more"><span class="ico" aria-hidden="true">⋯</span><span>เพิ่มเติม</span></a>
+  </nav>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="modal-root"></div>
+
+  <noscript><p style="padding:16px">แอปนี้ต้องเปิด JavaScript</p></noscript>
+
+  <!-- ข้อมูลบทเรียน (แก้ไขได้) -->
+  <script src="data/kana.js"></script>
+  <script src="data/path.js"></script>
+
+  <!-- ระบบหลัก -->
+  <script src="js/core/ui.js"></script>
+  <script src="js/core/store.js"></script>
+  <script src="js/core/speech.js"></script>
+  <script src="js/core/content.js"></script>
+  <script src="js/core/progress.js"></script>
+  <script src="js/core/router.js"></script>
+
+  <!-- แบบฝึกหัด -->
+  <script src="js/quiz/engine.js"></script>
+  <script src="js/quiz/kana-quiz.js"></script>
+
+  <!-- หน้าต่างๆ -->
+  <script src="js/pages/home.js"></script>
+  <script src="js/pages/level.js"></script>
+  <script src="js/pages/chart.js"></script>
+  <script src="js/pages/settings.js"></script>
+  <script src="js/pages/hubs.js"></script>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
