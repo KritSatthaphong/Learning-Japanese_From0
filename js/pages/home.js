@@ -47,7 +47,7 @@
       h('div', { class: 'hero-jp jp', lang: 'ja' }, 'がんばりましょう！'),
       h('p', { class: 'muted' }, 'สู้ๆ นะ! เรียนทีละด่าน จากตัวอักษรไปจนถึงประโยคเอาตัวรอด'),
       cont ? h('a', { class: 'btn btn-primary btn-lg btn-block', href: '#/level/' + cont.id },
-        h('span', null, (P.passedCount() === P.main().length ? '🎉 ผ่านครบทุกด่านแล้ว · ทบทวนด่าน ' : '▶ เรียนต่อ: ด่าน ') + cont.id + ' ', NS.ui.jp(cont.title))) : null));
+        h('span', null, (P.passedCount() === P.main().length ? '🎉 ผ่านครบทุกด่านแล้ว · ทบทวนด่าน ' : '▶ เรียนต่อ: ด่าน ') + cont.id + '\u00a0', NS.ui.jp(cont.title))) : null));
 
     var S = NS.stats;
     var due = NS.srs.dueCount();
@@ -70,7 +70,9 @@
       root.appendChild(h('section', { class: 'stage' },
         h('header', { class: 'stage-head' },
           h('div', null, h('small', { class: 'muted' }, 'ขั้นที่ ' + s.id), h('h3', null, s.title), h('small', { class: 'muted' }, s.sub)),
-          h('span', { class: 'stage-count' }, done + '/' + ms.length)),
+          h('span', { class: 'stage-side' },
+            h('span', { class: 'stage-count' }, done + '/' + ms.length),
+            NS.exam.canTake(s) ? h('a', { class: 'btn btn-ghost small', href: '#/exam/' + s.id }, '⏩ สอบข้ามขั้น') : null)),
         h('ol', { class: 'path' }, s.levels.map(function (l) { return nodeFor(l, P); }))));
     });
   };

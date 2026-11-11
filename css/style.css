@@ -513,6 +513,39 @@ select.input { appearance: auto; }
 .self-check { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
 .page-test > .btn-block { margin-top: 12px; }
 
+
+/* ---------- เกม / ฝึกเขียน / สอบข้ามขั้น ---------- */
+:root { --guide: rgba(31, 28, 25, .14); --ink: #1f1c19; }
+:root[data-theme="dark"] { --guide: rgba(242, 238, 232, .16); --ink: #f2eee8; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --guide: rgba(242, 238, 232, .16); --ink: #f2eee8; } }
+.stage-side { display: grid; justify-items: end; gap: 4px; }
+.game-start { display: grid; gap: 8px; text-align: center; margin-top: 12px; }
+.game-best { display: block; font-size: 2.4rem; color: var(--primary); }
+.game-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.game-time { flex: 1; height: 12px; }
+.game-time .bar.low { background: var(--bad); }
+.game-score { font-size: 1.1rem; white-space: nowrap; }
+.game-board { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.game-col { display: grid; gap: 8px; }
+.gcard {
+  min-height: 58px; padding: 6px; border-radius: 12px; cursor: pointer; font: inherit; font-weight: 700; font-size: 1.15rem;
+  background: var(--surface); color: var(--text); border: 2px solid var(--border); transition: opacity .2s, transform .1s;
+}
+.gleft { font-family: var(--font-jp); font-size: 1.6rem; font-weight: 500; }
+.gth { font-size: .95rem; }
+.gcard.sel { border-color: var(--primary); background: var(--primary-soft); }
+.gcard.ok { border-color: var(--ok); background: var(--ok-soft); opacity: .35; }
+.gcard.bad { border-color: var(--bad); background: var(--bad-soft); animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.write-tools { display: grid; gap: 8px; margin-bottom: 8px; }
+.write-head { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+.write-char { font-size: 2rem; }
+.write-romaji { font-weight: 700; color: var(--primary); flex: 1; }
+.write-wrap { display: flex; justify-content: center; }
+.write-canvas { touch-action: none; background: var(--surface); border: 2px solid var(--border); border-radius: 16px; cursor: crosshair; }
+.write-out { margin: 10px 0; min-height: 24px; }
+.write-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+
 /* ---------- โหมดข้อมูลตัวอย่าง ---------- */
 .demo-banner { position: sticky; top: var(--topbar-h); z-index: 25; background: #2b4c7e; color: #fff; align-items: center; flex-wrap: wrap; }
 .demo-banner .btn { background: rgba(255,255,255,.18); color: #fff; }

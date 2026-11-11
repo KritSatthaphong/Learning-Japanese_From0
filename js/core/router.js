@@ -8,8 +8,8 @@
   NS.pages = NS.pages || {};
 
   // หน้าไหนอยู่ในแถบเมนูอันไหน
-  var TAB_OF = { home: 'learn', level: 'learn', review: 'review', pairs: 'review', chart: 'chart', speak: 'speak', more: 'more', settings: 'more', calendar: 'more', phrasebook: 'speak', srs: 'review', mistakes: 'review', deck: 'more', speakcheck: 'speak', test: 'more' };
-  var TITLES = { home: 'เรียน', level: 'ด่าน', review: 'ทบทวน', pairs: 'ฟังแยกเสียง', chart: 'ตารางตัวอักษร', speak: 'ฝึกพูด', more: 'เพิ่มเติม', settings: 'ตั้งค่า', calendar: 'ปฏิทินการเรียน', phrasebook: 'Phrasebook', srs: 'ทบทวนตามรอบ', mistakes: 'สมุดคำผิด', deck: 'เด็คของฉัน', speakcheck: 'Speaking Check', test: 'Pre/Post Test' };
+  var TAB_OF = { home: 'learn', level: 'learn', review: 'review', pairs: 'review', chart: 'chart', speak: 'speak', more: 'more', settings: 'more', calendar: 'more', phrasebook: 'speak', srs: 'review', mistakes: 'review', deck: 'more', speakcheck: 'speak', test: 'more', game: 'review', write: 'chart', exam: 'learn' };
+  var TITLES = { home: 'เรียน', level: 'ด่าน', review: 'ทบทวน', pairs: 'ฟังแยกเสียง', chart: 'ตารางตัวอักษร', speak: 'ฝึกพูด', more: 'เพิ่มเติม', settings: 'ตั้งค่า', calendar: 'ปฏิทินการเรียน', phrasebook: 'Phrasebook', srs: 'ทบทวนตามรอบ', mistakes: 'สมุดคำผิด', deck: 'เด็คของฉัน', speakcheck: 'Speaking Check', test: 'Pre/Post Test', game: 'เกมจับคู่', write: 'ฝึกเขียน', exam: 'สอบข้ามขั้น' };
   var leaveFns = [];
 
   function render() {
