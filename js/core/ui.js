@@ -141,5 +141,34 @@
     root.appendChild(list);
   }
 
-  NS.ui = { h: h, jp: jp, shuffle: shuffle, toast: toast, speakBtn: speakBtn, modal: modal, toggle: toggle, segmented: segmented, hub: hub };
+  /* ดาวน์โหลดข้อความเป็นไฟล์ (CSV / JSON) */
+  function download(filename, text, mime) {
+    try {
+      var blob = text instanceof Blob ? text : new Blob([text], { type: mime || 'text/plain;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = h('a', { href: url, download: filename, style: 'display:none' });
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    } catch (e) { toast('ดาวน์โหลดไม่ได้: ' + e.message); }
+  }
+
+  /* คัดลอกข้อความ (มีวิธีสำรองสำหรับเบราว์เซอร์ที่ไม่รองรับ clipboard API หรือเปิดจาก file://) */
+  function copyText(text, okMsg) {
+    function fallback() {
+      var ta = h('textarea', { style: 'position:fixed;top:-1000px;opacity:0' });
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      ta.remove();
+      toast(ok ? (okMsg || 'คัดลอกแล้ว') : 'คัดลอกไม่ได้ ลองเลือกข้อความแล้วคัดลอกเอง');
+    }
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function () { toast(okMsg || 'คัดลอกแล้ว'); }, fallback);
+      } else fallback();
+    } catch (e) { fallback(); }
+  }
+
+  NS.ui = { h: h, jp: jp, download: download, copyText: copyText, shuffle: shuffle, toast: toast, speakBtn: speakBtn, modal: modal, toggle: toggle, segmented: segmented, hub: hub };
 })();
