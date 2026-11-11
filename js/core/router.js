@@ -8,8 +8,8 @@
   NS.pages = NS.pages || {};
 
   // หน้าไหนอยู่ในแถบเมนูอันไหน
-  var TAB_OF = { home: 'learn', level: 'learn', review: 'review', chart: 'chart', speak: 'speak', more: 'more', settings: 'more' };
-  var TITLES = { home: 'เรียน', level: 'ด่าน', review: 'ทบทวน', chart: 'ตารางตัวอักษร', speak: 'ฝึกพูด', more: 'เพิ่มเติม', settings: 'ตั้งค่า' };
+  var TAB_OF = { home: 'learn', level: 'learn', review: 'review', pairs: 'review', chart: 'chart', speak: 'speak', more: 'more', settings: 'more' };
+  var TITLES = { home: 'เรียน', level: 'ด่าน', review: 'ทบทวน', pairs: 'ฟังแยกเสียง', chart: 'ตารางตัวอักษร', speak: 'ฝึกพูด', more: 'เพิ่มเติม', settings: 'ตั้งค่า' };
   var leaveFns = [];
 
   function render() {

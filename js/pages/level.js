@@ -1,5 +1,6 @@
 /*
  * level.js — หน้าด่าน: 1) เรียน → 2) แบบฝึกหัด → 3) ผลลัพธ์
+ * รองรับด่านหลายชนิด: kana (ตัวอักษร), pairs (ฟังแยกเสียง), vocab (คำศัพท์)
  */
 (function () {
   'use strict';
@@ -16,19 +17,44 @@
   function header(level, active) {
     return h('div', { class: 'level-head' },
       h('a', { href: '#/home', class: 'back' }, '← เส้นทางเรียน'),
-      h('h1', { class: 'page-title' }, 'ด่าน ' + level.id + ' · ', NS.ui.jp(level.title)),
+      h('h1', { class: 'page-title' }, (level.bonus ? '' : 'ด่าน ' + level.id + ' · '), NS.ui.jp(level.title)),
       stepper(active));
   }
 
+  /* การ์ดหนึ่งรายการ (ตัวอักษร หรือ คำศัพท์) */
   function itemCard(it, big) {
-    return h('button', { class: 'kana-card' + (big ? ' big' : ''), type: 'button',
-      'aria-label': it.char + ' อ่านว่า ' + it.label + ' แตะเพื่อฟัง',
+    return h('button', { class: 'kana-card' + (big ? ' big' : '') + (it.kind === 'vocab' ? ' vocab' : ''), type: 'button',
+      'aria-label': it.char + ' อ่านว่า ' + it.label + (it.th ? ' แปลว่า ' + it.th : '') + ' แตะเพื่อฟัง',
       onclick: function () { NS.speech.speak(it.sound); } },
+      it.kanji ? NS.ui.jp(it.kanji, 'kana-kanji') : null,
       NS.ui.jp(it.char, 'kana-char'),
       h('span', { class: 'kana-romaji' }, it.label),
+      it.kind === 'vocab' ? h('span', { class: 'kana-th' }, it.th) : null,
       big && it.tip ? h('span', { class: 'kana-tip' }, '💡 ' + it.tip) : null,
       big && it.note ? h('span', { class: 'kana-note' }, it.note) : null,
       big ? h('span', { class: 'muted small' }, '🔊 แตะการ์ดเพื่อฟังเสียง') : null);
+  }
+
+  /* ตั้งค่าตามชนิดด่าน */
+  function kindOf(level) {
+    if (level.kind === 'pairs') {
+      return {
+        items: null,
+        build: function () { return NS.pairsQuiz.build('all', 10); },
+        learnView: function () { return NS.pairsQuiz.list('all'); },
+        learnHint: 'แตะแต่ละคำเพื่อฟังเสียง ลองฟังสลับกันหลายๆ รอบ แล้วสังเกตว่าต่างกันตรงไหน'
+      };
+    }
+    if (level.kind === 'vocab') {
+      return {
+        items: NS.content.vocabItems(level),
+        build: function () { return NS.vocabQuiz.build(level, 10); }
+      };
+    }
+    return {
+      items: NS.content.levelItems(level),
+      build: function () { return NS.kanaQuiz.build(level, 10); }
+    };
   }
 
   NS.pages.level = function (root, args) {
@@ -49,7 +75,8 @@
       return;
     }
 
-    var items = NS.content.levelItems(level);
+    var kind = kindOf(level);
+    var items = kind.items;
     var view = 'card';
     var idx = 0;
 
@@ -60,6 +87,15 @@
       if (level.intro) {
         root.appendChild(h('div', { class: 'card intro' }, level.intro.split('\n').map(function (line) { return h('p', null, line); })));
       }
+
+      if (kind.learnView) {
+        if (kind.learnHint) root.appendChild(h('p', { class: 'muted' }, kind.learnHint));
+        root.appendChild(kind.learnView());
+        root.appendChild(h('div', { class: 'sticky-cta' },
+          h('button', { class: 'btn btn-primary btn-block btn-lg', type: 'button', onclick: startQuiz }, 'เริ่มแบบฝึกหัด (10 ข้อ) →')));
+        return;
+      }
+
       root.appendChild(h('div', { class: 'learn-tools' },
         NS.ui.segmented([{ value: 'card', label: 'ดูทีละใบ' }, { value: 'grid', label: 'ดูทั้งหมด' }], view,
           function (v) { view = v; learn(); }, 'รูปแบบการดู'),
@@ -75,8 +111,8 @@
         root.appendChild(h('div', { class: 'center' },
           NS.ui.speakBtn(it.sound, { label: '🐢 ฟังช้า', rate: 0.5, cls: 'btn-ghost' })));
       } else {
-        root.appendChild(h('div', { class: 'kana-grid' }, items.map(function (x) { return itemCard(x, false); })));
-        root.appendChild(h('p', { class: 'muted small center' }, 'แตะที่ตัวอักษรเพื่อฟังเสียง · ดูทริคจำได้ในโหมด "ดูทีละใบ"'));
+        root.appendChild(h('div', { class: 'kana-grid' + (level.kind === 'vocab' ? ' vocab-grid' : '') }, items.map(function (x) { return itemCard(x, false); })));
+        root.appendChild(h('p', { class: 'muted small center' }, 'แตะเพื่อฟังเสียง · ดูทริคจำ/รายละเอียดได้ในโหมด "ดูทีละใบ"'));
       }
 
       root.appendChild(h('div', { class: 'sticky-cta' },
@@ -88,8 +124,8 @@
 
     /* ---------- 2) แบบฝึกหัด ---------- */
     function startQuiz() {
-      NS.store.markLearned(items.map(function (x) { return x.id; }));
-      var qs = NS.kanaQuiz.build(level, 10);
+      if (items) NS.store.markLearned(items.map(function (x) { return x.id; }));
+      var qs = kind.build();
       root.innerHTML = '';
       var holder = h('div');
       root.appendChild(header(level, 1));
@@ -100,7 +136,7 @@
         onExit: function () {
           NS.ui.modal({
             title: 'ออกจากแบบฝึกหัด?',
-            body: 'คะแนนรอบนี้จะไม่ถูกบันทึก',
+            body: 'คะแนนรอบนี้จะไม่ถูกบันทึก (XP ที่ได้ไปแล้วยังอยู่)',
             actions: [
               { label: 'ทำต่อ', cls: 'btn-soft' },
               { label: 'ออก', cls: 'btn-danger', onClick: function () { learn(); } }
@@ -120,25 +156,11 @@
       root.innerHTML = '';
       root.appendChild(header(level, 2));
 
-      var box = h('section', { class: 'card result ' + (passed ? 'ok' : 'bad') },
-        h('div', { class: 'result-score' }, r.correct + '/' + r.total),
-        h('div', { class: 'result-pct' }, r.pct + '%'),
-        h('div', { class: 'stars big', 'aria-label': stars + ' ดาว' }, [1, 2, 3].map(function (i) { return h('span', { class: i <= stars ? 'on' : '' }, '★'); })),
-        h('p', { class: 'result-msg' }, passed
-          ? (stars === 3 ? 'สมบูรณ์แบบ! 🎉' : 'ผ่านแล้ว! เก่งมาก 👏')
-          : 'ยังไม่ผ่าน ต้องได้ 80% ขึ้นไป ลองอีกครั้งนะ 💪'),
-        saved.firstPass && nxt && P.isReady(nxt) ? h('p', { class: 'unlock' }, '🔓 ปลดล็อกด่าน ' + nxt.id + ' แล้ว!') : null,
-        h('p', { class: 'muted small' }, 'ได้ ' + (r.correct * 10) + ' XP · ดาว: 80% = 1 ดวง, 90% = 2 ดวง, 100% = 3 ดวง'));
-      root.appendChild(box);
-
-      if (r.wrong.length) {
-        root.appendChild(h('section', { class: 'card' },
-          h('h3', null, 'ข้อที่ตอบผิด (' + r.wrong.length + ')'),
-          h('ul', { class: 'wrong-list' }, r.wrong.map(function (q) {
-            return h('li', null, NS.ui.jp(q.item.char, 'wrong-char'), h('span', null, ' = ' + q.item.label),
-              NS.ui.speakBtn(q.item.sound, { label: '🔊', cls: 'btn-ghost small', aria: 'ฟัง ' + q.item.char }));
-          }))));
-      }
+      root.appendChild(NS.quiz.resultCard(r, {
+        stars: stars,
+        extra: saved.firstPass && nxt && P.isReady(nxt) && !level.bonus ? h('p', { class: 'unlock' }, '🔓 ปลดล็อกด่าน ' + nxt.id + ' แล้ว!') : null
+      }));
+      if (r.wrong.length) root.appendChild(NS.quiz.wrongList(r.wrong));
 
       var actions = h('div', { class: 'stack' });
       if (passed && nxt && P.isReady(nxt) && P.isUnlocked(nxt)) {

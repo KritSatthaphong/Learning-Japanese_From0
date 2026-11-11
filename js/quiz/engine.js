@@ -128,5 +128,33 @@
     show();
   }
 
-  NS.quiz = { run: run };
+  /* การ์ดสรุปคะแนน (ใช้ร่วมกันหลายหน้า) */
+  function resultCard(r, o) {
+    o = o || {};
+    var passed = r.pct >= 80;
+    var stars = o.stars != null ? o.stars : NS.progress.starsFor(r.pct);
+    return h('section', { class: 'card result ' + (passed ? 'ok' : 'bad') },
+      h('div', { class: 'result-score' }, r.correct + '/' + r.total),
+      h('div', { class: 'result-pct' }, r.pct + '%'),
+      o.noStars ? null : h('div', { class: 'stars big', 'aria-label': stars + ' ดาว' }, [1, 2, 3].map(function (i) { return h('span', { class: i <= stars ? 'on' : '' }, '★'); })),
+      h('p', { class: 'result-msg' }, passed
+        ? (r.pct === 100 ? 'สมบูรณ์แบบ! 🎉' : 'ผ่านแล้ว! เก่งมาก 👏')
+        : (o.noStars ? 'ฝึกต่ออีกนิด สู้ๆ 💪' : 'ยังไม่ผ่าน ต้องได้ 80% ขึ้นไป ลองอีกครั้งนะ 💪')),
+      o.extra || null,
+      h('p', { class: 'muted small' }, 'ได้ ' + (r.correct * 10) + ' XP' + (o.noStars ? '' : ' · ดาว: 80% = 1 ดวง, 90% = 2 ดวง, 100% = 3 ดวง')));
+  }
+
+  /* รายการข้อที่ตอบผิด */
+  function wrongList(wrong) {
+    return h('section', { class: 'card' },
+      h('h3', null, 'ข้อที่ตอบผิด (' + wrong.length + ')'),
+      h('ul', { class: 'wrong-list' }, wrong.map(function (q) {
+        var it = q.item;
+        return h('li', null, NS.ui.jp(it.char, 'wrong-char'),
+          h('span', null, ' = ' + it.label + (it.th ? ' · ' + it.th : '')),
+          NS.ui.speakBtn(it.sound, { label: '🔊', cls: 'btn-ghost small', aria: 'ฟัง ' + it.char }));
+      })));
+  }
+
+  NS.quiz = { run: run, resultCard: resultCard, wrongList: wrongList };
 })();
