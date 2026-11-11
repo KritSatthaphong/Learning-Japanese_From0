@@ -1,6 +1,5 @@
 /*
- * settings.js — หน้าตั้งค่า (เฟส 1 เป็นแบบย่อ: เสียง, เปิดทุกด่าน, ธีม, ล้างข้อมูล)
- * export/import และเป้า XP จะเพิ่มในเฟสต่อไป
+ * settings.js — หน้าตั้งค่า: เสียง, เป้า XP, เปิดทุกด่าน, ธีม, ข้อมูลตัวอย่าง, สำรอง/นำเข้า, ล้างข้อมูล
  */
 (function () {
   'use strict';
@@ -75,9 +74,15 @@
           } }, '🧪 โหลดข้อมูลตัวอย่าง')));
 
     /* ข้อมูล */
+    var fileIn = h('input', { type: 'file', accept: '.json,application/json', hidden: true });
+    fileIn.addEventListener('change', function () { importAll(fileIn.files[0]); fileIn.value = ''; });
     root.appendChild(h('section', { class: 'card settings-sec' },
       h('h2', null, '💾 ข้อมูล'),
-      h('p', { class: 'muted small' }, 'ความคืบหน้าทั้งหมดเก็บอยู่ในเบราว์เซอร์ของเครื่องนี้เท่านั้น ไม่ได้ส่งไปที่ไหน (ปุ่มสำรอง/ย้ายข้อมูลจะเพิ่มในเฟส 7)'),
+      h('p', { class: 'muted small' }, 'ความคืบหน้าทั้งหมดเก็บอยู่ในเบราว์เซอร์ของเครื่องนี้เท่านั้น ไม่ได้ส่งไปที่ไหน ใช้ปุ่มด้านล่างสำรองเป็นไฟล์ หรือย้ายไปเครื่องอื่น (ไฟล์เสียงที่อัดไว้ไม่รวมอยู่ในไฟล์สำรอง)'),
+      h('div', { class: 'row' },
+        h('button', { class: 'btn btn-soft', type: 'button', onclick: exportAll }, '⬇ สำรองข้อมูล (JSON)'),
+        h('button', { class: 'btn btn-soft', type: 'button', onclick: function () { fileIn.click(); } }, '⬆ นำเข้าข้อมูล'),
+        fileIn),
       NS.store.isOk() ? null : h('p', { class: 'notice warn' }, '⚠️ เบราว์เซอร์นี้บันทึกข้อมูลไม่ได้ ความคืบหน้าจะหายเมื่อปิดหน้า'),
       h('button', { class: 'btn btn-danger', type: 'button', onclick: function () {
         NS.ui.modal({
@@ -90,6 +95,32 @@
         });
       } }, '🗑 ล้างข้อมูลทั้งหมด')));
 
-    root.appendChild(h('p', { class: 'muted small center' }, 'Nihongo Survival · เฟส 3'));
+    root.appendChild(h('p', { class: 'muted small center' }, 'Nihongo Survival · เว็บแอปเรียนภาษาญี่ปุ่น · สร้างร่วมกับ AI (Claude Code)'));
+
+    function exportAll() {
+      var data = { app: 'nihongo-survival', type: 'backup', exportedAt: new Date().toISOString(), state: NS.store.get() };
+      NS.ui.download('nihongo-backup-' + NS.store.today() + '.json', JSON.stringify(data, null, 1), 'application/json');
+    }
+    function importAll(file) {
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        var data;
+        try { data = JSON.parse(reader.result); } catch (e) { NS.ui.toast('ไฟล์ไม่ใช่ JSON ที่ถูกต้อง'); return; }
+        var st = data && data.state;
+        if (!data || data.app !== 'nihongo-survival' || !st || typeof st !== 'object' || typeof st.levels !== 'object') {
+          NS.ui.toast('ไฟล์นี้ไม่ใช่ไฟล์สำรองของ Nihongo Survival'); return;
+        }
+        NS.ui.modal({
+          title: 'นำเข้าข้อมูล?',
+          body: h('div', null, h('p', null, 'ข้อมูลปัจจุบันในเครื่องนี้จะถูกแทนที่ด้วยข้อมูลในไฟล์'), h('p', { class: 'muted small' }, 'ไฟล์สำรองเมื่อ ' + (data.exportedAt || '-').slice(0, 10) + (st.demo ? ' · ⚠️ ไฟล์นี้เป็นข้อมูลตัวอย่าง' : ''))),
+          actions: [
+            { label: 'ยกเลิก', cls: 'btn-soft' },
+            { label: 'นำเข้า', cls: 'btn-primary', onClick: function () { NS.store.replace(st); NS.app.applyTheme(); NS.app.updateBanner(); NS.ui.toast('นำเข้าข้อมูลแล้ว'); NS.router.go('#/home'); } }
+          ]
+        });
+      };
+      reader.readAsText(file);
+    }
   };
 })();
