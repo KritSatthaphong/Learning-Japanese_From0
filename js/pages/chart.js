@@ -100,10 +100,10 @@
       root.appendChild(h('section', { class: 'chart-sec' },
         table('3. เสียงควบ (拗音)', 'youon', YOUON_ROWS, YCOLS, mode, fade)));
 
-      root.appendChild(h('a', { class: 'hub-item card disabled no-print', 'aria-disabled': 'true' },
+      root.appendChild(h('a', { class: 'hub-item card no-print', href: '#/write' },
         h('span', { class: 'hub-ico jp', lang: 'ja', 'aria-hidden': 'true' }, '書'),
         h('span', { class: 'hub-text' }, h('strong', null, 'ฝึกเขียนด้วยนิ้ว'), h('small', { class: 'muted' }, 'ลากตามเส้นนำแล้วให้คะแนน')),
-        h('span', { class: 'badge' }, 'เฟส 6')));
+        h('span', { class: 'hub-go', 'aria-hidden': 'true' }, '›')));
     }
     render();
   };
