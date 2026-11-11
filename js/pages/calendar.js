@@ -61,7 +61,7 @@
     function render() {
       root.innerHTML = '';
       root.appendChild(h('a', { href: '#/more', class: 'back' }, '← เพิ่มเติม'));
-      root.appendChild(h('h1', { class: 'page-title' }, 'ปฏิทินการเรียน'));
+      root.appendChild(h('h1', { class: 'page-title' }, 'ปฏิทินการเรียน', NS.demo.isOn() ? h('span', { class: 'badge demo-badge' }, 'ข้อมูลตัวอย่าง') : null));
 
       root.appendChild(h('section', { class: 'card stack-sm' },
         S.goalBar(),

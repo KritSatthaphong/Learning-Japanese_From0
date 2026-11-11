@@ -111,6 +111,16 @@
       return { rec: rec, firstPass: !wasPassed && rec.passed };
     },
 
+    /* แทนที่ข้อมูลทั้งหมด (ใช้กับโหมดข้อมูลตัวอย่าง และนำเข้าข้อมูลในอนาคต) */
+    replace: function (obj) {
+      try {
+        localStorage.setItem(KEY, JSON.stringify(obj));
+        load();
+      } catch (e) {
+        state = obj;   // บันทึกไม่ได้ ก็ใช้ในหน่วยความจำไปก่อน
+      }
+    },
+
     reset: function () {
       state = defaults();
       try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }

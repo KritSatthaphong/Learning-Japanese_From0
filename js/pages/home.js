@@ -47,7 +47,7 @@
       h('div', { class: 'hero-jp jp', lang: 'ja' }, 'がんばりましょう！'),
       h('p', { class: 'muted' }, 'สู้ๆ นะ! เรียนทีละด่าน จากตัวอักษรไปจนถึงประโยคเอาตัวรอด'),
       cont ? h('a', { class: 'btn btn-primary btn-lg btn-block', href: '#/level/' + cont.id },
-        '▶ เรียนต่อ: ด่าน ' + cont.id + ' ', NS.ui.jp(cont.title)) : null));
+        h('span', null, (P.passedCount() === P.main().length ? '🎉 ผ่านครบทุกด่านแล้ว · ทบทวนด่าน ' : '▶ เรียนต่อ: ด่าน ') + cont.id + ' ', NS.ui.jp(cont.title))) : null));
 
     var S = NS.stats;
     root.appendChild(h('a', { class: 'card goal-card', href: '#/calendar', 'aria-label': 'เป้าหมายวันนี้ ดูปฏิทินการเรียน' }, S.goalBar()));
@@ -58,7 +58,7 @@
       h('div', { class: 'tile card' }, h('small', { class: 'muted' }, 'เรียนต่อเนื่อง'), h('strong', null, '🔥 ' + S.streak() + ' วัน')),
       h('div', { class: 'tile card' }, h('small', { class: 'muted' }, 'ความแม่นยำเฉลี่ย'), h('strong', null, acc))));
 
-    root.appendChild(h('h2', { class: 'section-title' }, 'เส้นทางเรียน'));
+    root.appendChild(h('h2', { class: 'section-title' }, 'เส้นทางเรียน', NS.demo.isOn() ? h('span', { class: 'badge demo-badge' }, 'ข้อมูลตัวอย่าง') : null));
     NS.PATH.forEach(function (s) {
       var ms = s.levels.filter(function (l) { return !l.bonus; });
       var done = ms.filter(function (l) { return P.isPassed(l.id); }).length;

@@ -29,6 +29,13 @@
     var el = document.getElementById('banner');
     if (!el) return;
     el.innerHTML = '';
+    if (NS.demo && NS.demo.isOn()) {
+      el.appendChild(h('div', { class: 'banner demo-banner', role: 'status' },
+        h('div', { class: 'banner-text' }, h('strong', null, '🧪 ข้อมูลตัวอย่าง'), ' — ไม่ใช่ผลการเรียนจริง ใช้สาธิตการทำงานของแอปเท่านั้น'),
+        h('button', { class: 'btn btn-soft small', type: 'button', onclick: function () {
+          NS.demo.clear(); NS.app.applyTheme(); updateBanner(); NS.ui.toast('กลับสู่ข้อมูลจริงแล้ว'); NS.router.refresh();
+        } }, 'ออกจากโหมดตัวอย่าง')));
+    }
     if (bannerClosed) return;
     var s = NS.speech.status();
     var msg = null;
