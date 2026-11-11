@@ -87,6 +87,61 @@
 
     stop: function () {
       try { if (supported) window.speechSynthesis.cancel(); } catch (e) { /* ignore */ }
+      S.stopListening();
+    },
+
+    /* ---------- ถอดเสียงพูด (SpeechRecognition ja-JP) ---------- */
+    recogSupported: !!(window.SpeechRecognition || window.webkitSpeechRecognition),
+    isFile: location.protocol === 'file:',
+    _rec: null,
+
+    /* ฟัง 1 ประโยค คืนค่า Promise { ok, alternatives: [...] } หรือ { ok: false, error, message } */
+    listen: function () {
+      var R = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!R) return Promise.resolve({ ok: false, error: 'unsupported', message: S.errorText('unsupported') });
+      S.stop();
+      return new Promise(function (resolve) {
+        var done = false, guard = null;
+        function finish(r) { if (!done) { done = true; clearTimeout(guard); S._rec = null; resolve(r); } }
+        // กันค้าง: ถ้าระบบถอดเสียงเงียบไปนานเกิน 15 วินาที ให้จบเอง
+        guard = setTimeout(function () { S.stopListening(); finish({ ok: false, error: 'no-speech', message: S.errorText('no-speech') }); }, 15000);
+        try {
+          var rec = new R();
+          rec.lang = 'ja-JP';
+          rec.interimResults = false;
+          rec.continuous = false;
+          rec.maxAlternatives = 5;
+          rec.onresult = function (e) {
+            var res = e.results[0], alts = [];
+            for (var i = 0; i < res.length; i++) alts.push(res[i].transcript);
+            finish({ ok: true, alternatives: alts });
+          };
+          rec.onerror = function (e) { finish({ ok: false, error: e.error, message: S.errorText(e.error) }); };
+          rec.onend = function () { finish({ ok: false, error: 'no-speech', message: S.errorText('no-speech') }); };
+          S._rec = rec;
+          rec.start();
+        } catch (err) {
+          finish({ ok: false, error: 'start', message: S.errorText('start') + ' (' + err.message + ')' });
+        }
+      });
+    },
+
+    stopListening: function () {
+      try { if (S._rec) S._rec.stop(); } catch (e) { /* ignore */ }
+    },
+
+    errorText: function (code) {
+      var fileTip = S.isFile ? ' — ตอนนี้เปิดจากไฟล์ (file://) ซึ่ง Chrome มักไม่ให้ใช้ไมค์ ให้เปิดผ่าน localhost หรือ GitHub Pages แทน' : '';
+      return ({
+        unsupported: 'เบราว์เซอร์นี้ถอดเสียงพูดไม่ได้ แนะนำ Google Chrome (คอม / Android)',
+        'not-allowed': 'ไม่ได้รับอนุญาตให้ใช้ไมค์ กดอนุญาตไมค์ที่ไอคอน 🔒 หน้าที่อยู่เว็บ' + fileTip,
+        'service-not-allowed': 'เบราว์เซอร์ไม่อนุญาตให้ใช้ระบบถอดเสียง' + fileTip,
+        'no-speech': 'ไม่ได้ยินเสียง ลองพูดดังขึ้น หรือใกล้ไมค์มากขึ้น',
+        'audio-capture': 'ไม่พบไมค์ ตรวจว่าเสียบไมค์ หรืออนุญาตไมค์ในการตั้งค่าเครื่องแล้ว',
+        network: 'ระบบถอดเสียงของ Chrome ต้องต่ออินเทอร์เน็ต ลองตรวจการเชื่อมต่อ',
+        aborted: 'หยุดฟังแล้ว',
+        start: 'เริ่มฟังไม่ได้'
+      })[code] || ('เกิดข้อผิดพลาด: ' + code);
     }
   };
 })();

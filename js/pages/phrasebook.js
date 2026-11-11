@@ -46,7 +46,7 @@
         var lv = stage5.levels.find(function (l) { return l.id === it.level; });
         list.appendChild(NS.cards.phrase(it, h('div', { class: 'phrase-foot' },
           h('span', { class: 'badge' }, lv ? lv.title : ''),
-          h('button', { class: 'btn btn-ghost small', type: 'button', disabled: true, title: 'จะเปิดใช้ในเฟส 5' }, '🎤 ฝึกพูดวลีนี้ (เฟส 5)'))));
+          h('a', { class: 'btn btn-ghost small', href: '#/speakcheck/' + encodeURIComponent(it.id) }, '🎤 ฝึกพูดวลีนี้'))));
       });
     }
 
