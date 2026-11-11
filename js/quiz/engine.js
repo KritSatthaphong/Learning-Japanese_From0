@@ -46,7 +46,7 @@
             onclick: function () { NS.speech.speak(p.audio, { rate: 0.5 }); } }, '🐢 ฟังช้า'));
       }
       return h('div', { class: 'q-prompt' },
-        p.jp ? NS.ui.jp(p.text, 'q-big') : h('span', { class: 'q-big ' + (p.th ? 'q-th' : 'q-latin') }, p.text),
+        p.jp ? NS.ui.jp(p.text, 'q-big' + (p.small ? ' q-sent' : '')) : h('span', { class: 'q-big ' + (p.th ? 'q-th' : 'q-latin') }, p.text),
         p.sub ? h('div', { class: 'muted' }, p.sub) : null);
     }
 
@@ -62,8 +62,9 @@
         h('span', { class: 'muted small' }, (i + 1) + '/' + total));
 
       var btns = [];
-      var choices = h('div', { class: 'choices' });
-      q.choices.forEach(function (c, ci) {
+      var choices = h('div', { class: 'choices' + (q.layout === 'list' ? ' list' : '') });
+      if (q.type === 'blocks') choices = renderBlocks(q);
+      else q.choices.forEach(function (c, ci) {
         var b = h('button', { class: 'choice', type: 'button', onclick: function () { pick(c, b); } },
           h('span', { class: 'choice-num', 'aria-hidden': 'true' }, String(ci + 1)),
           c.jp ? NS.ui.jp(c.label, 'choice-main choice-jp' + (c.label.length > 3 ? ' long' : '')) : h('span', { class: 'choice-main choice-latin' }, c.label),
@@ -81,20 +82,66 @@
         renderPrompt(q.prompt), choices, fb));
 
       if (q.prompt.audio) setTimeout(function () { NS.speech.speak(q.prompt.audio); }, 200);
+      NS.quiz.current = q;
+    }
+
+    /*
+     * โจทย์ต่อประโยคจากบล็อกคำ
+     * q.tiles = บล็อกทั้งหมด (สลับลำดับแล้ว รวมบล็อกหลอก), q.answerText = คำตอบที่ถูก, q.accept = ลำดับอื่นที่ถูก
+     */
+    function renderBlocks(q) {
+      var placed = [];
+      var tray = h('div', { class: 'tray', 'aria-label': 'ประโยคที่เรียงแล้ว (แตะบล็อกเพื่อเอาออก)' });
+      var pool = h('div', { class: 'pool', 'aria-label': 'บล็อกคำ (แตะเพื่อเพิ่ม)' });
+      var hint = h('span', { class: 'tray-hint muted small' }, 'แตะบล็อกด้านล่างเพื่อเรียงประโยค');
+      var tiles = q.tiles.map(function (t, ti) {
+        return h('button', { class: 'tile', type: 'button', lang: 'ja', onclick: function () { toggle(ti); } }, t);
+      });
+      var check = h('button', { class: 'btn btn-primary btn-block', type: 'button', disabled: true, onclick: function () {
+        var ans = placed.map(function (ti) { return q.tiles[ti]; }).join('');
+        var ok = [q.answerText].concat(q.accept || []).some(function (a) { return norm(a) === norm(ans); });
+        tiles.forEach(function (b) { b.disabled = true; });
+        tray.classList.add(ok ? 'ok' : 'bad');
+        check.hidden = true; clear.hidden = true;
+        judge(ok, ok ? null : 'คุณเรียงว่า: ' + (ans || '(ว่าง)'));
+      } }, 'ตรวจคำตอบ');
+      var clear = h('button', { class: 'btn btn-ghost small', type: 'button', onclick: function () { placed = []; draw(); } }, 'ล้าง');
+      function toggle(ti) {
+        if (answered) return;
+        var pos = placed.indexOf(ti);
+        if (pos >= 0) placed.splice(pos, 1); else placed.push(ti);
+        draw();
+      }
+      function draw() {
+        tray.innerHTML = ''; pool.innerHTML = '';
+        if (!placed.length) tray.appendChild(hint);
+        placed.forEach(function (ti) { tray.appendChild(tiles[ti]); });
+        tiles.forEach(function (b, ti) { if (placed.indexOf(ti) < 0) pool.appendChild(b); });
+        check.disabled = !placed.length;
+      }
+      draw();
+      return h('div', { class: 'blocks' }, tray, pool, h('div', { class: 'blocks-actions' }, clear, check));
     }
 
     function pick(c) {
       if (answered) return;
-      answered = true;
       var q = current.q;
       var ok = c.id === q.answerId;
-      if (ok) correct++; else wrong.push(q);
       current.btns.forEach(function (b) {
         b.disabled = true;
         if (b._choice.id === q.answerId) b.classList.add('correct');
         else if (b._choice === c) b.classList.add('wrong');
         else b.classList.add('dim');
       });
+      judge(ok);
+    }
+
+    /* ตัดสินผล แล้วแสดงเฉลย */
+    function judge(ok, extra) {
+      if (answered) return;
+      answered = true;
+      var q = current.q;
+      if (ok) correct++; else wrong.push(q);
       if (opts.onAnswer) opts.onAnswer(q, ok);
 
       var last = i === total - 1;
@@ -107,6 +154,7 @@
       fb.className = 'feedback ' + (ok ? 'ok' : 'bad');
       fb.hidden = false;
       fb.appendChild(h('div', { class: 'fb-head' }, ok ? '✅ ถูกต้อง! +10 XP' : '❌ ยังไม่ถูก'));
+      if (extra) fb.appendChild(h('div', { class: 'fb-detail' }, NS.ui.jp(extra)));
       if (q.reveal) {
         fb.appendChild(h('div', { class: 'fb-answer' },
           h('span', null, 'เฉลย: '), NS.ui.jp(q.reveal.title, 'fb-title'),
@@ -127,6 +175,9 @@
 
     show();
   }
+
+  /* ตัดช่องว่างและเครื่องหมายวรรคตอนก่อนเทียบคำตอบ */
+  function norm(s) { return String(s || '').replace(/[\s、。，,.！!？?・「」]/g, ''); }
 
   /* การ์ดสรุปคะแนน (ใช้ร่วมกันหลายหน้า) */
   function resultCard(r, o) {
@@ -156,5 +207,5 @@
       })));
   }
 
-  NS.quiz = { run: run, resultCard: resultCard, wrongList: wrongList };
+  NS.quiz = { run: run, resultCard: resultCard, wrongList: wrongList, norm: norm, current: null };
 })();

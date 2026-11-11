@@ -49,6 +49,7 @@
 
 /* ---------- พื้นฐาน ---------- */
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; background: var(--bg); color: var(--text);
@@ -389,6 +390,44 @@ a.hub-item:hover { border-color: var(--primary); }
 .heat-legend { display: flex; gap: 4px; align-items: center; justify-content: flex-end; }
 .heat-legend .heat-cell { width: 14px; height: 14px; cursor: default; }
 .heat-info { min-height: 1.4em; }
+
+
+/* ---------- ประโยค / วลี ---------- */
+.q-big.q-sent { font-size: clamp(1.5rem, 7vw, 2.2rem); text-align: center; line-height: 1.5; }
+.choices.list { grid-template-columns: 1fr; }
+.choices.list .choice { min-height: 56px; align-items: flex-start; padding-left: 32px; text-align: left; }
+.choices.list .choice-jp, .choices.list .choice-jp.long { font-size: 1.3rem; word-break: normal; }
+.blocks { display: grid; gap: 12px; }
+.tray {
+  min-height: 64px; padding: 10px; border: 2px dashed var(--border); border-radius: 14px;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--surface);
+}
+.tray.ok { border-style: solid; border-color: var(--ok); background: var(--ok-soft); }
+.tray.bad { border-style: solid; border-color: var(--bad); background: var(--bad-soft); }
+.pool { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; min-height: 48px; }
+.tile {
+  font-family: var(--font-jp); font-size: 1.25rem; padding: 8px 14px; min-height: 46px; border-radius: 12px; cursor: pointer;
+  background: var(--surface); color: var(--text); border: 2px solid var(--border); box-shadow: 0 2px 0 var(--border);
+}
+.tile:hover:not(:disabled) { border-color: var(--primary); }
+.tile:disabled { cursor: default; }
+.tray .tile { background: var(--primary-soft); border-color: var(--primary); box-shadow: none; }
+.tray.ok .tile, .tray.bad .tile { background: transparent; border-color: transparent; padding: 4px 2px; }
+.blocks-actions { display: flex; gap: 8px; align-items: center; }
+.blocks-actions .btn-primary { flex: 1; }
+
+.phrase-card { padding: 12px 12px 12px 14px; }
+.phrase-main { display: flex; gap: 8px; align-items: flex-start; }
+.phrase-say { flex: 1; display: grid; gap: 2px; text-align: left; background: none; border: 0; padding: 0; color: var(--text); font: inherit; cursor: pointer; }
+.phrase-kana { font-size: 1.35rem; line-height: 1.4; }
+.phrase-romaji { color: var(--primary); font-weight: 600; font-size: .9rem; }
+.phrase-th { font-weight: 600; }
+.phrase-note { color: var(--warn); }
+.phrase-btns { display: grid; gap: 6px; }
+.phrase-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.input { width: 100%; min-height: 46px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; }
+.pb-tools { display: grid; gap: 10px; margin: 8px 0; }
+.intro h3 { margin-bottom: 6px; }
 
 /* ---------- เคลื่อนไหวน้อยลง ---------- */
 @media (prefers-reduced-motion: reduce) {
