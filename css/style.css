@@ -279,6 +279,8 @@ a.hub-item:hover { border-color: var(--primary); }
 .feedback { margin-top: 14px; padding: 14px; border-radius: 14px; display: grid; gap: 8px; }
 .feedback.ok { background: var(--ok-soft); }
 .feedback.bad { background: var(--bad-soft); }
+.feedback.neutral { background: var(--surface-2); }
+.choice.picked { border-color: var(--primary); background: var(--primary-soft); }
 .fb-head { font-weight: 700; font-size: 1.1rem; }
 .feedback.ok .fb-head { color: var(--ok); }
 .feedback.bad .fb-head { color: var(--bad); }
@@ -451,6 +453,65 @@ a.hub-item:hover { border-color: var(--primary); }
 .icon-btn.small { min-width: 36px; min-height: 36px; font-size: 1rem; color: var(--muted); }
 .deck-io { margin: 10px 0; }
 select.input { appearance: auto; }
+
+
+/* ---------- ฝึกพูด / อัดเสียง ---------- */
+.sc-pick { display: grid; gap: 8px; margin: 8px 0 12px; }
+.sc-target { display: grid; gap: 4px; text-align: center; justify-items: center; margin-bottom: 12px; }
+.sc-kana { font-size: clamp(1.6rem, 7vw, 2.3rem); line-height: 1.4; }
+.speak-box { display: grid; gap: 10px; justify-items: center; margin-top: 8px; }
+.mic-btn {
+  display: grid; justify-items: center; gap: 4px; width: 148px; padding: 18px 8px; border-radius: 999px; border: 0; cursor: pointer;
+  background: var(--primary); color: var(--primary-ink); font: inherit; font-weight: 700;
+}
+.mic-btn span:first-child { font-size: 2.4rem; line-height: 1; }
+.mic-btn.listening { animation: pulse 1.2s infinite; background: var(--bad); }
+.mic-btn:disabled { opacity: .45; cursor: not-allowed; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(200, 56, 47, .5); } 70% { box-shadow: 0 0 0 18px rgba(200, 56, 47, 0); } 100% { box-shadow: 0 0 0 0 rgba(200, 56, 47, 0); } }
+.speak-out { width: 100%; }
+.verdict { padding: 12px 14px; border-radius: 12px; display: grid; gap: 4px; }
+.verdict.match { background: var(--ok-soft); }
+.verdict.close { background: var(--warn-soft); }
+.verdict.miss { background: var(--bad-soft); }
+.verdict-head { display: flex; justify-content: space-between; font-size: 1.15rem; }
+.verdict-pct { font-weight: 800; }
+.heard { font-size: 1.2rem; font-weight: 600; }
+.rec-panel { display: grid; gap: 6px; margin-top: 8px; }
+.rec-panel.compact { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
+.rec-steps { display: flex; flex-wrap: wrap; gap: 6px; }
+.btn.recording { background: var(--bad); color: #fff; }
+.hist { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.hist li { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.hist-v { font-weight: 700; }
+
+/* ---------- Pre/Post Test ---------- */
+:root { --s-pre: #2a78d6; --s-post: #eb6834; }
+:root[data-theme="dark"] { --s-pre: #3987e5; --s-post: #d95926; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --s-pre: #3987e5; --s-post: #d95926; } }
+.pp-parts { margin: 0; padding-left: 20px; }
+.pp-chart { width: 100%; height: auto; display: block; max-width: 520px; margin: 0 auto; }
+.pp-grid { stroke: var(--border); stroke-width: 1; }
+.pp-base { stroke: var(--muted); stroke-width: 1; }
+.pp-axis { fill: var(--muted); font-size: 11px; font-family: var(--font); }
+.pp-val { fill: var(--text); font-size: 11px; font-weight: 700; font-family: var(--font); }
+.pp-bar.s-pre { fill: var(--s-pre); }
+.pp-bar.s-post { fill: var(--s-post); }
+.pp-bar:hover { opacity: .85; }
+.pp-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: .85rem; color: var(--text); margin-bottom: 4px; }
+.pp-legend .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.sw.s-pre { background: var(--s-pre); }
+.sw.s-post { background: var(--s-post); }
+.s-pre-badge { background: var(--s-pre); color: #fff; }
+.s-post-badge { background: var(--s-post); color: #fff; }
+.table-wrap { overflow-x: auto; margin: 12px 0; padding: 8px; }
+.pp-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.pp-table th, .pp-table td { padding: 6px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.pp-table caption { text-align: left; padding-bottom: 4px; }
+.tiles.tiles-3 { grid-template-columns: repeat(3, 1fr); margin: 4px 0; }
+.tiles-3 > div { display: grid; }
+.tiles-3 strong { font-size: 1.6rem; }
+.self-check { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.page-test > .btn-block { margin-top: 12px; }
 
 /* ---------- โหมดข้อมูลตัวอย่าง ---------- */
 .demo-banner { position: sticky; top: var(--topbar-h); z-index: 25; background: #2b4c7e; color: #fff; align-items: center; flex-wrap: wrap; }

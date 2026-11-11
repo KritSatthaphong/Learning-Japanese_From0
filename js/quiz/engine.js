@@ -129,6 +129,7 @@
       var ok = c.id === q.answerId;
       current.btns.forEach(function (b) {
         b.disabled = true;
+        if (opts.testMode) { b.classList.add(b._choice === c ? 'picked' : 'dim'); return; }
         if (b._choice.id === q.answerId) b.classList.add('correct');
         else if (b._choice === c) b.classList.add('wrong');
         else b.classList.add('dim');
@@ -152,6 +153,15 @@
       current.next = next;
 
       var fb = current.fb;
+      if (opts.testMode) {
+        // โหมดสอบ: ไม่บอกเฉลยระหว่างสอบ
+        fb.className = 'feedback neutral';
+        fb.hidden = false;
+        fb.appendChild(h('div', { class: 'fb-head' }, '📝 บันทึกคำตอบแล้ว'));
+        fb.appendChild(next);
+        next.focus({ preventScroll: true });
+        return;
+      }
       fb.className = 'feedback ' + (ok ? 'ok' : 'bad');
       fb.hidden = false;
       fb.appendChild(h('div', { class: 'fb-head' }, ok ? '✅ ถูกต้อง! +10 XP' : '❌ ยังไม่ถูก'));
