@@ -32,7 +32,7 @@
       h('div', { class: 'detail-romaji' }, NS.content.romajiLabel(k.romaji)),
       scripts.map(function (s) {
         var it = NS.content.kanaItem(k, s);
-        var tip = it.tip || (s === 'kata' ? 'ทริคจำคาตากานะจะเพิ่มในเฟส 2' : '');
+        var tip = it.tip;
         return tip ? h('p', { class: 'detail-tip' }, (scripts.length > 1 ? (s === 'hira' ? 'ひ: ' : 'カ: ') : '') + '💡 ' + tip) : null;
       }),
       k.note ? h('p', { class: 'detail-note' }, 'ℹ️ ' + k.note) : null,

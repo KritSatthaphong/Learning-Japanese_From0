@@ -66,7 +66,8 @@
       q.choices.forEach(function (c, ci) {
         var b = h('button', { class: 'choice', type: 'button', onclick: function () { pick(c, b); } },
           h('span', { class: 'choice-num', 'aria-hidden': 'true' }, String(ci + 1)),
-          c.jp ? NS.ui.jp(c.label, 'choice-jp') : h('span', { class: 'choice-latin' }, c.label));
+          c.jp ? NS.ui.jp(c.label, 'choice-main choice-jp') : h('span', { class: 'choice-main choice-latin' }, c.label),
+          c.sub ? h('span', { class: 'choice-sub' }, c.sub) : null);
         b._choice = c;
         btns.push(b);
         choices.appendChild(b);

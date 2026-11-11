@@ -59,24 +59,34 @@
     };
   }
 
-  function sokuonItem(w) {
+  /* คำตัวอย่างในด่านตัวอักษร (คำที่มี っ / คำทับศัพท์) */
+  function wordTip(w, script) {
+    var ch = w[script];
+    var parts = ['แปลว่า "' + w.th + '"'];
+    if (/[っッ]/.test(ch)) parts.push((script === 'hira' ? 'っ' : 'ッ') + ' ตัวเล็ก = หยุดค้างครึ่งจังหวะ ในโรมันจิเขียนพยัญชนะซ้ำ');
+    if (/ー/.test(ch)) parts.push('ー = ลากเสียงสระตัวหน้าให้ยาว');
+    if (/[ゃゅょャュョ]/.test(ch)) parts.push('มีเสียงควบ (ตัวเล็ก ゃゅょ)');
+    return parts.join(' · ');
+  }
+
+  function wordItem(w, script) {
     return {
       id: 'w-' + w.romaji,
       kind: 'word',
-      script: 'hira',
-      char: w.hira,
+      script: script,
+      char: w[script],
       romaji: w.romaji,
       label: w.romaji,
       th: w.th,
-      group: 'sokuon',
-      tip: 'っ ตัวเล็ก = หยุดค้างครึ่งจังหวะ ในโรมันจิเขียนพยัญชนะซ้ำ (' + w.romaji + ') · แปลว่า ' + w.th,
+      group: 'word',
+      tip: wordTip(w, script),
       note: '',
       quiz: true,
-      sound: w.hira,
+      sound: w[script],
       soundKey: w.romaji,
       near: w.near ? {
-        id: 'near-' + w.romaji, char: w.near.hira, romaji: w.near.romaji,
-        label: w.near.romaji, sound: w.near.hira, soundKey: w.near.romaji
+        id: 'near-' + w.romaji, char: w.near[script], romaji: w.near.romaji,
+        label: w.near.romaji, sound: w.near[script], soundKey: w.near.romaji
       } : null,
       verify: !!w.verify
     };
@@ -86,7 +96,9 @@
     if (level.kind !== 'kana') return [];
     var items = NS.KANA.filter(function (k) { return k.lv === level.lv; })
       .map(function (k) { return kanaItem(k, level.script); });
-    if (level.sokuon && level.script === 'hira') items = items.concat(NS.SOKUON.map(sokuonItem));
+    if (level.words && NS[level.words]) {
+      items = items.concat(NS[level.words].map(function (w) { return wordItem(w, level.script); }));
+    }
     return items;
   }
 
