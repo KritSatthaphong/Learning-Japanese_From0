@@ -73,8 +73,8 @@
       return {
         items: ph,
         build: function () { return NS.sentenceQuiz.buildPhrase(level, 10); },
-        learnHint: 'ฟังแต่ละวลีแล้วพูดตามออกเสียงดังๆ (ฝึกพูดกับไมค์และอัดเสียงจะมาในเฟส 5)',
-        learnView: function () { return h('div', { class: 'stack-sm' }, ph.map(function (it) { return phraseCard(it); })); }
+        learnHint: 'ฟังแต่ละวลี แล้วอัดเสียงตัวเองพูดตาม ฟังเทียบกับต้นแบบ (ฝึกให้แอปตรวจได้ที่ ฝึกพูด → Speaking Check)',
+        learnView: function () { return h('div', { class: 'stack-sm' }, ph.map(function (it) { return phraseCard(it, NS.recPanel(it, { compact: true })); })); }
       };
     }
     if (level.kind === 'pairs') {

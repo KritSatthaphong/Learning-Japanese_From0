@@ -8,14 +8,15 @@
   NS.pages = NS.pages || {};
 
   // หน้าไหนอยู่ในแถบเมนูอันไหน
-  var TAB_OF = { home: 'learn', level: 'learn', review: 'review', pairs: 'review', chart: 'chart', speak: 'speak', more: 'more', settings: 'more', calendar: 'more', phrasebook: 'speak', srs: 'review', mistakes: 'review', deck: 'more' };
-  var TITLES = { home: 'เรียน', level: 'ด่าน', review: 'ทบทวน', pairs: 'ฟังแยกเสียง', chart: 'ตารางตัวอักษร', speak: 'ฝึกพูด', more: 'เพิ่มเติม', settings: 'ตั้งค่า', calendar: 'ปฏิทินการเรียน', phrasebook: 'Phrasebook', srs: 'ทบทวนตามรอบ', mistakes: 'สมุดคำผิด', deck: 'เด็คของฉัน' };
+  var TAB_OF = { home: 'learn', level: 'learn', review: 'review', pairs: 'review', chart: 'chart', speak: 'speak', more: 'more', settings: 'more', calendar: 'more', phrasebook: 'speak', srs: 'review', mistakes: 'review', deck: 'more', speakcheck: 'speak', test: 'more' };
+  var TITLES = { home: 'เรียน', level: 'ด่าน', review: 'ทบทวน', pairs: 'ฟังแยกเสียง', chart: 'ตารางตัวอักษร', speak: 'ฝึกพูด', more: 'เพิ่มเติม', settings: 'ตั้งค่า', calendar: 'ปฏิทินการเรียน', phrasebook: 'Phrasebook', srs: 'ทบทวนตามรอบ', mistakes: 'สมุดคำผิด', deck: 'เด็คของฉัน', speakcheck: 'Speaking Check', test: 'Pre/Post Test' };
   var leaveFns = [];
 
   function render() {
     leaveFns.forEach(function (fn) { try { fn(); } catch (e) { /* ignore */ } });
     leaveFns = [];
     NS.speech.stop();
+    if (NS.recorder) NS.recorder.stop();
 
     var parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
     var name = parts[0] && NS.pages[parts[0]] ? parts[0] : 'home';
