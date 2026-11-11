@@ -1,0 +1,76 @@
+/*
+ * เส้นทางเรียน: 5 ขั้น 33 ด่าน + ด่านเสริม
+ * ------------------------------------------------------------
+ *   id    : รหัสด่าน (ขั้น-ด่าน)
+ *   kind  : ชนิดของด่าน (kana = ตัวอักษร)
+ *   script: hira = ฮิรางานะ, kata = คาตากานะ
+ *   lv    : ใช้ตัวอักษรที่มีค่า lv นี้ใน data/kana.js
+ *   soon  : เลขเฟสที่จะสร้างด่านนี้ (ถ้ามีค่านี้ ด่านจะขึ้นว่า "เร็วๆ นี้")
+ *   bonus : true = ด่านเสริม ไม่นับรวมใน 33 ด่าน และไม่ต้องผ่านก็ไปต่อได้
+ *   intro : คำอธิบายสั้นๆ ก่อนเริ่มเรียน
+ */
+window.NS = window.NS || {};
+
+NS.PATH = [
+  {
+    id: 1, title: "ฮิรางานะ", sub: "ตัวอักษรหลักของภาษาญี่ปุ่น ใช้เขียนคำทั่วไป",
+    levels: [
+      { id: "1-1", kind: "kana", script: "hira", lv: 1, title: "あ – こ", desc: "แถวสระ あ และแถว か" },
+      { id: "1-2", kind: "kana", script: "hira", lv: 2, title: "さ – と", desc: "แถว さ และแถว た" },
+      { id: "1-3", kind: "kana", script: "hira", lv: 3, title: "な – ほ", desc: "แถว な และแถว は" },
+      { id: "1-4", kind: "kana", script: "hira", lv: 4, title: "ま – ん", desc: "แถว ま や ら わ และ ん" },
+      { id: "1-5", kind: "kana", script: "hira", lv: 5, title: "เสียงขุ่น が ざ だ ば ぱ", desc: "เติม ゛ หรือ ゜ ให้เสียงเปลี่ยน",
+        intro: "เติมขีดสองขีด ゛ ที่มุมขวาบน เสียงจะขุ่นขึ้น: k→g, s→z, t→d, h→b\nเติมวงกลมเล็ก ゜ ที่แถว は เสียงจะเป็น p\nぢ กับ づ ออกเสียงเหมือน じ กับ ず จึงไม่ออกในแบบฝึกหัด" },
+      { id: "1-6", kind: "kana", script: "hira", lv: 6, title: "เสียงควบ + っ ตัวเล็ก", desc: "きゃ しゃ ちゃ … และ きって", sokuon: true,
+        intro: "ตัว ゃ ゅ ょ ตัวเล็ก ต่อท้ายตัวแถว i (き し ち に ひ み り ぎ じ び ぴ) แล้วอ่านรวบเป็นพยางค์เดียว เช่น き + ゃ → きゃ (kya)\nっ ตัวเล็ก = หยุดค้างเสียงครึ่งจังหวะก่อนพยางค์ถัดไป ในโรมันจิจะเขียนพยัญชนะซ้ำ เช่น きって = ki-t-te" }
+    ]
+  },
+  {
+    id: 2, title: "คาตากานะ", sub: "ใช้เขียนคำทับศัพท์ เช่น コーヒー (กาแฟ)",
+    levels: [
+      { id: "2-1", kind: "kana", script: "kata", lv: 1, title: "ア – コ", desc: "แถวสระ ア และแถว カ", soon: 2 },
+      { id: "2-2", kind: "kana", script: "kata", lv: 2, title: "サ – ト", desc: "แถว サ และแถว タ", soon: 2 },
+      { id: "2-3", kind: "kana", script: "kata", lv: 3, title: "ナ – ホ", desc: "แถว ナ และแถว ハ", soon: 2 },
+      { id: "2-4", kind: "kana", script: "kata", lv: 4, title: "マ – ン", desc: "แถว マ ヤ ラ ワ และ ン", soon: 2 },
+      { id: "2-5", kind: "kana", script: "kata", lv: 5, title: "เสียงขุ่น ガ ザ ダ バ パ", desc: "เติม ゛ หรือ ゜", soon: 2 },
+      { id: "2-6", kind: "kana", script: "kata", lv: 6, title: "ー ッ ャュョ + คำทับศัพท์", desc: "コーヒー ホテル タクシー …", soon: 2 },
+      { id: "2-B", kind: "pairs", bonus: true, title: "ด่านเสริม: ฟังแยกเสียงที่คล้ายกัน", desc: "おばさん / おばあさん, きて / きって …", soon: 2 }
+    ]
+  },
+  {
+    id: 3, title: "คำศัพท์", sub: "คำที่ใช้บ่อย ด่านละ 10 คำ",
+    levels: [
+      { id: "3-1", kind: "vocab", title: "ตัวเลข 1–10", desc: "いち に さん …", soon: 2 },
+      { id: "3-2", kind: "vocab", title: "คนและครอบครัว", desc: "わたし ともだち …", soon: 2 },
+      { id: "3-3", kind: "vocab", title: "อาหารและเครื่องดื่ม", desc: "みず ごはん …", soon: 2 },
+      { id: "3-4", kind: "vocab", title: "สถานที่", desc: "えき トイレ …", soon: 2 },
+      { id: "3-5", kind: "vocab", title: "คำกริยา (ます)", desc: "たべます のみます …", soon: 2 },
+      { id: "3-6", kind: "vocab", title: "คำคุณศัพท์", desc: "おいしい たかい …", soon: 2 },
+      { id: "3-7", kind: "vocab", title: "เวลา", desc: "きょう あした …", soon: 2 }
+    ]
+  },
+  {
+    id: 4, title: "รูปประโยค", sub: "โครงสร้างประโยคพื้นฐาน",
+    levels: [
+      { id: "4-1", kind: "grammar", title: "A は B です", desc: "A คือ B", soon: 3 },
+      { id: "4-2", kind: "grammar", title: "〜ですか + はい・いいえ", desc: "ประโยคคำถาม", soon: 3 },
+      { id: "4-3", kind: "grammar", title: "これ・それ・あれ", desc: "นี่ / นั่น / โน่น", soon: 3 },
+      { id: "4-4", kind: "grammar", title: "〜をください", desc: "ขอ … หน่อย", soon: 3 },
+      { id: "4-5", kind: "grammar", title: "〜はどこですか", desc: "… อยู่ที่ไหน", soon: 3 },
+      { id: "4-6", kind: "grammar", title: "〜ます・〜ません", desc: "ทำ / ไม่ทำ", soon: 3 },
+      { id: "4-7", kind: "grammar", title: "〜たいです", desc: "อยาก …", soon: 3 },
+      { id: "4-8", kind: "grammar", title: "〜てください", desc: "กรุณา …", soon: 3 }
+    ]
+  },
+  {
+    id: 5, title: "สถานการณ์จริง", sub: "วลีเอาตัวรอด ด่านละ 10 วลี",
+    levels: [
+      { id: "5-1", kind: "phrase", title: "ทักทาย", desc: "こんにちは ありがとう …", soon: 3 },
+      { id: "5-2", kind: "phrase", title: "แนะนำตัว", desc: "はじめまして …", soon: 3 },
+      { id: "5-3", kind: "phrase", title: "ร้านอาหาร", desc: "メニューをください …", soon: 3 },
+      { id: "5-4", kind: "phrase", title: "ซื้อของ / ถามราคา", desc: "いくらですか …", soon: 3 },
+      { id: "5-5", kind: "phrase", title: "ถามทาง", desc: "えきはどこですか …", soon: 3 },
+      { id: "5-6", kind: "phrase", title: "ขอความช่วยเหลือ", desc: "もう一度お願いします …", soon: 3 }
+    ]
+  }
+];
