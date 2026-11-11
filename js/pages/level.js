@@ -35,8 +35,48 @@
       big ? h('span', { class: 'muted small' }, '🔊 แตะการ์ดเพื่อฟังเสียง') : null);
   }
 
+  /* การ์ดประโยค/วลี (ใช้ในหน้าด่านและ Phrasebook) */
+  function phraseCard(it, extra) {
+    return h('article', { class: 'phrase-card card' },
+      h('div', { class: 'phrase-main' },
+        h('button', { class: 'phrase-say', type: 'button', 'aria-label': 'ฟัง ' + it.char, onclick: function () { NS.speech.speak(it.sound); } },
+          NS.ui.jp(it.char, 'phrase-kana'),
+          it.jp && it.jp !== it.char ? h('span', { class: 'phrase-jp muted small' }, 'เขียนจริง: ', NS.ui.jp(it.jp)) : null,
+          h('span', { class: 'phrase-romaji' }, it.label),
+          h('span', { class: 'phrase-th' }, it.th),
+          it.note ? h('span', { class: 'phrase-note small' }, 'ℹ️ ' + it.note) : null),
+        h('div', { class: 'phrase-btns' },
+          NS.ui.speakBtn(it.sound, { label: '🔊', aria: 'ฟัง', cls: 'btn-soft small' }),
+          NS.ui.speakBtn(it.sound, { label: '🐢', aria: 'ฟังช้า', rate: 0.6, cls: 'btn-ghost small' }))),
+      extra || null);
+  }
+  NS.cards = { phrase: phraseCard };
+
   /* ตั้งค่าตามชนิดด่าน */
   function kindOf(level) {
+    if (level.kind === 'grammar') {
+      var g = NS.content.grammarOf(level) || { explain: [], sentences: [] };
+      var sent = NS.content.grammarItems(level);
+      return {
+        items: sent,
+        build: function () { return NS.sentenceQuiz.buildGrammar(level, 10); },
+        learnView: function () {
+          return h('div', { class: 'stack-sm' },
+            h('section', { class: 'card intro' }, h('h3', null, '📘 อธิบาย'), g.explain.map(function (line) { return h('p', null, line); })),
+            h('h3', { class: 'section-title flush' }, 'ตัวอย่าง (แตะเพื่อฟัง)'),
+            sent.slice(0, 3).map(function (it) { return phraseCard(it); }));
+        }
+      };
+    }
+    if (level.kind === 'phrase') {
+      var ph = NS.content.phraseItems(level);
+      return {
+        items: ph,
+        build: function () { return NS.sentenceQuiz.buildPhrase(level, 10); },
+        learnHint: 'ฟังแต่ละวลีแล้วพูดตามออกเสียงดังๆ (ฝึกพูดกับไมค์และอัดเสียงจะมาในเฟส 5)',
+        learnView: function () { return h('div', { class: 'stack-sm' }, ph.map(function (it) { return phraseCard(it); })); }
+      };
+    }
     if (level.kind === 'pairs') {
       return {
         items: null,

@@ -139,7 +139,51 @@
     return (NS.VOCAB || []).filter(function (v) { return v.level < level.id; }).map(vocabItem);
   }
 
+  /* ประโยค (ขั้น 4) และวลี (ขั้น 5) */
+  function slug(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+
+  function sentenceItem(s, levelId) {
+    return {
+      id: s.id ? 'p-' + s.id : 'g-' + slug(s.romaji),
+      kind: s.id ? 'phrase' : 'sentence',
+      level: s.level || levelId,
+      char: s.kana,
+      jp: s.jp || s.kana,
+      romaji: s.romaji,
+      label: s.romaji,
+      th: s.th,
+      note: s.note || '',
+      tip: s.note || '',
+      blocks: s.blocks || [],
+      decoys: s.decoys || [],
+      wrong: s.wrong || [],
+      accept: s.accept || [],
+      alt: s.alt || [],
+      sound: s.jp || s.kana,
+      verify: !!s.verify
+    };
+  }
+
+  function grammarOf(level) { return (NS.GRAMMAR || {})[level.id] || null; }
+  function grammarItems(level) {
+    var g = grammarOf(level);
+    return g ? g.sentences.map(function (s) { return sentenceItem(s, level.id); }) : [];
+  }
+  function phraseItems(level) {
+    return (NS.PHRASES || []).filter(function (p) { return p.level === level.id; }).map(function (p) { return sentenceItem(p); });
+  }
+  function phrasesBefore(level) {
+    return (NS.PHRASES || []).filter(function (p) { return p.level < level.id; }).map(function (p) { return sentenceItem(p); });
+  }
+  function allPhrases() { return (NS.PHRASES || []).map(function (p) { return sentenceItem(p); }); }
+
   NS.content = {
+    sentenceItem: sentenceItem,
+    grammarOf: grammarOf,
+    grammarItems: grammarItems,
+    phraseItems: phraseItems,
+    phrasesBefore: phrasesBefore,
+    allPhrases: allPhrases,
     vocabItem: vocabItem,
     vocabItems: vocabItems,
     vocabBefore: vocabBefore,

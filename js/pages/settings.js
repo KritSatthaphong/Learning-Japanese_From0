@@ -72,6 +72,6 @@
         });
       } }, '🗑 ล้างข้อมูลทั้งหมด')));
 
-    root.appendChild(h('p', { class: 'muted small center' }, 'Nihongo Survival · เฟส 2'));
+    root.appendChild(h('p', { class: 'muted small center' }, 'Nihongo Survival · เฟส 3'));
   };
 })();

@@ -56,25 +56,25 @@ NS.PATH = [
   {
     id: 4, title: "รูปประโยค", sub: "โครงสร้างประโยคพื้นฐาน",
     levels: [
-      { id: "4-1", kind: "grammar", title: "A は B です", desc: "A คือ B", soon: 3 },
-      { id: "4-2", kind: "grammar", title: "〜ですか + はい・いいえ", desc: "ประโยคคำถาม", soon: 3 },
-      { id: "4-3", kind: "grammar", title: "これ・それ・あれ", desc: "นี่ / นั่น / โน่น", soon: 3 },
-      { id: "4-4", kind: "grammar", title: "〜をください", desc: "ขอ … หน่อย", soon: 3 },
-      { id: "4-5", kind: "grammar", title: "〜はどこですか", desc: "… อยู่ที่ไหน", soon: 3 },
-      { id: "4-6", kind: "grammar", title: "〜ます・〜ません", desc: "ทำ / ไม่ทำ", soon: 3 },
-      { id: "4-7", kind: "grammar", title: "〜たいです", desc: "อยาก …", soon: 3 },
-      { id: "4-8", kind: "grammar", title: "〜てください", desc: "กรุณา …", soon: 3 }
+      { id: "4-1", kind: "grammar", title: "A は B です", desc: "A คือ B" },
+      { id: "4-2", kind: "grammar", title: "〜ですか + はい・いいえ", desc: "ประโยคคำถาม" },
+      { id: "4-3", kind: "grammar", title: "これ・それ・あれ", desc: "นี่ / นั่น / โน่น" },
+      { id: "4-4", kind: "grammar", title: "〜をください", desc: "ขอ … หน่อย" },
+      { id: "4-5", kind: "grammar", title: "〜はどこですか", desc: "… อยู่ที่ไหน" },
+      { id: "4-6", kind: "grammar", title: "〜ます・〜ません", desc: "ทำ / ไม่ทำ" },
+      { id: "4-7", kind: "grammar", title: "〜たいです", desc: "อยาก …" },
+      { id: "4-8", kind: "grammar", title: "〜てください", desc: "กรุณา …" }
     ]
   },
   {
     id: 5, title: "สถานการณ์จริง", sub: "วลีเอาตัวรอด ด่านละ 10 วลี",
     levels: [
-      { id: "5-1", kind: "phrase", title: "ทักทาย", desc: "こんにちは ありがとう …", soon: 3 },
-      { id: "5-2", kind: "phrase", title: "แนะนำตัว", desc: "はじめまして …", soon: 3 },
-      { id: "5-3", kind: "phrase", title: "ร้านอาหาร", desc: "メニューをください …", soon: 3 },
-      { id: "5-4", kind: "phrase", title: "ซื้อของ / ถามราคา", desc: "いくらですか …", soon: 3 },
-      { id: "5-5", kind: "phrase", title: "ถามทาง", desc: "えきはどこですか …", soon: 3 },
-      { id: "5-6", kind: "phrase", title: "ขอความช่วยเหลือ", desc: "もう一度お願いします …", soon: 3 }
+      { id: "5-1", kind: "phrase", title: "ทักทาย", desc: "こんにちは ありがとう …" },
+      { id: "5-2", kind: "phrase", title: "แนะนำตัว", desc: "はじめまして …" },
+      { id: "5-3", kind: "phrase", title: "ร้านอาหาร", desc: "メニューをください …" },
+      { id: "5-4", kind: "phrase", title: "ซื้อของ / ถามราคา", desc: "いくらですか …" },
+      { id: "5-5", kind: "phrase", title: "ถามทาง", desc: "えきはどこですか …" },
+      { id: "5-6", kind: "phrase", title: "ขอความช่วยเหลือ", desc: "もう一度お願いします …" }
     ]
   }
 ];
