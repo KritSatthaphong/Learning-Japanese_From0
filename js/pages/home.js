@@ -49,10 +49,14 @@
       cont ? h('a', { class: 'btn btn-primary btn-lg btn-block', href: '#/level/' + cont.id },
         '▶ เรียนต่อ: ด่าน ' + cont.id + ' ', NS.ui.jp(cont.title)) : null));
 
-    root.appendChild(h('div', { class: 'tiles' },
+    var S = NS.stats;
+    root.appendChild(h('a', { class: 'card goal-card', href: '#/calendar', 'aria-label': 'เป้าหมายวันนี้ ดูปฏิทินการเรียน' }, S.goalBar()));
+
+    root.appendChild(h('div', { class: 'tiles tiles-4' },
       h('div', { class: 'tile card' }, h('small', { class: 'muted' }, 'ด่านที่ผ่าน'), h('strong', null, P.passedCount() + '/' + P.main().length)),
-      h('div', { class: 'tile card' }, h('small', { class: 'muted' }, 'ความแม่นยำเฉลี่ย'), h('strong', null, acc)),
-      h('div', { class: 'tile card' }, h('small', { class: 'muted' }, 'ตอบไปแล้ว'), h('strong', null, st.stats.answered + ' ข้อ'))));
+      h('div', { class: 'tile card' }, h('small', { class: 'muted' }, 'XP รวม'), h('strong', null, '⭐ ' + S.total())),
+      h('div', { class: 'tile card' }, h('small', { class: 'muted' }, 'เรียนต่อเนื่อง'), h('strong', null, '🔥 ' + S.streak() + ' วัน')),
+      h('div', { class: 'tile card' }, h('small', { class: 'muted' }, 'ความแม่นยำเฉลี่ย'), h('strong', null, acc))));
 
     root.appendChild(h('h2', { class: 'section-title' }, 'เส้นทางเรียน'));
     NS.PATH.forEach(function (s) {

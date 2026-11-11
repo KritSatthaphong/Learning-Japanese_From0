@@ -106,7 +106,7 @@
       var fb = current.fb;
       fb.className = 'feedback ' + (ok ? 'ok' : 'bad');
       fb.hidden = false;
-      fb.appendChild(h('div', { class: 'fb-head' }, ok ? '✅ ถูกต้อง!' : '❌ ยังไม่ถูก'));
+      fb.appendChild(h('div', { class: 'fb-head' }, ok ? '✅ ถูกต้อง! +10 XP' : '❌ ยังไม่ถูก'));
       if (q.reveal) {
         fb.appendChild(h('div', { class: 'fb-answer' },
           h('span', null, 'เฉลย: '), NS.ui.jp(q.reveal.title, 'fb-title'),

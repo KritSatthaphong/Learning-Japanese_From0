@@ -83,7 +83,10 @@
       if (correct) b.correct++;
       if (correct) {
         var t = today();
-        state.xpByDay[t] = (state.xpByDay[t] || 0) + 10;
+        var before = state.xpByDay[t] || 0;
+        state.xpByDay[t] = before + 10;
+        var goal = state.settings.dailyGoal || 50;
+        if (before < goal && state.xpByDay[t] >= goal && NS.ui) NS.ui.toast('🎉 ถึงเป้าหมายวันนี้แล้ว! (' + goal + ' XP)');
       }
       save();
     },

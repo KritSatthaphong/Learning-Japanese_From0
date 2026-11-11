@@ -42,7 +42,9 @@
     root.appendChild(h('section', { class: 'card settings-sec' },
       h('h2', null, '📚 การเรียน'),
       NS.ui.toggle('เปิดทุกด่าน', st.unlockAll, function (v) { NS.store.setSetting('unlockAll', v); NS.ui.toast(v ? 'เปิดทุกด่านแล้ว' : 'กลับไปใช้ระบบปลดล็อกตามลำดับ'); },
-        'สำหรับคนที่เรียนมาแล้ว หรืออยากลองด่านไหนก่อนก็ได้')));
+        'สำหรับคนที่เรียนมาแล้ว หรืออยากลองด่านไหนก่อนก็ได้'),
+      h('div', { class: 'field' }, h('span', null, 'เป้า XP ต่อวัน'), NS.stats.goalPicker(function (v) { NS.ui.toast('ตั้งเป้าเป็น ' + v + ' XP ต่อวัน'); }),
+        h('small', { class: 'muted' }, 'ตอบถูก 1 ข้อ = 10 XP · ดูปฏิทินได้ที่ เพิ่มเติม → ปฏิทินการเรียน'))));
 
     /* หน้าจอ */
     root.appendChild(h('section', { class: 'card settings-sec' },
@@ -70,6 +72,6 @@
         });
       } }, '🗑 ล้างข้อมูลทั้งหมด')));
 
-    root.appendChild(h('p', { class: 'muted small center' }, 'Nihongo Survival · เฟส 1'));
+    root.appendChild(h('p', { class: 'muted small center' }, 'Nihongo Survival · เฟส 2'));
   };
 })();

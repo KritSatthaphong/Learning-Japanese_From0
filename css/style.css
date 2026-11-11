@@ -360,6 +360,36 @@ a.hub-item:hover { border-color: var(--primary); }
 .field input[type="range"] { width: 100%; accent-color: var(--primary); }
 .rate-out { font-weight: 700; color: var(--primary); }
 
+
+/* ---------- เป้าหมายรายวัน / ปฏิทิน ---------- */
+:root { --heat0: var(--surface-2); --heat1: #f6c9c4; --heat2: #ec958c; --heat3: #d6544a; --heat4: #9e2a22; }
+:root[data-theme="dark"] { --heat1: #4a2622; --heat2: #7a3a33; --heat3: #c2524a; --heat4: #ff7a6d; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --heat1: #4a2622; --heat2: #7a3a33; --heat3: #c2524a; --heat4: #ff7a6d; } }
+.goal-card { display: block; margin-top: 12px; text-decoration: none; color: var(--text); }
+.goal { display: grid; gap: 6px; }
+.goal-row { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.goal-progress { height: 12px; flex: none; }
+.goal.done .bar { background: var(--ok); }
+.goal.done .goal-row span { color: var(--ok); font-weight: 700; }
+.tiles.tiles-4 { grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 600px) { .tiles.tiles-4 { grid-template-columns: repeat(4, 1fr); } }
+.stack-sm { display: grid; gap: 12px; }
+.section-title.flush { margin-top: 0; }
+.page-calendar .tiles { margin: 12px 0; }
+.heat { display: grid; grid-template-columns: 24px repeat(12, 1fr); gap: 3px; align-items: center; margin: 8px 0; }
+.heat-month { font-size: .62rem; color: var(--muted); white-space: nowrap; overflow: visible; }
+.heat-day { font-size: .65rem; color: var(--muted); }
+.heat-cell { display: block; width: 100%; aspect-ratio: 1; border-radius: 4px; border: 0; padding: 0; background: var(--heat0); cursor: pointer; }
+.heat-cell.l1 { background: var(--heat1); }
+.heat-cell.l2 { background: var(--heat2); }
+.heat-cell.l3 { background: var(--heat3); }
+.heat-cell.l4 { background: var(--heat4); }
+.heat-cell.future { background: transparent; cursor: default; }
+.heat-cell.today { outline: 2px solid var(--text); outline-offset: 1px; }
+.heat-legend { display: flex; gap: 4px; align-items: center; justify-content: flex-end; }
+.heat-legend .heat-cell { width: 14px; height: 14px; cursor: default; }
+.heat-info { min-height: 1.4em; }
+
 /* ---------- เคลื่อนไหวน้อยลง ---------- */
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
