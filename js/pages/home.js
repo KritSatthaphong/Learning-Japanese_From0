@@ -50,6 +50,11 @@
         h('span', null, (P.passedCount() === P.main().length ? '🎉 ผ่านครบทุกด่านแล้ว · ทบทวนด่าน ' : '▶ เรียนต่อ: ด่าน ') + cont.id + ' ', NS.ui.jp(cont.title))) : null));
 
     var S = NS.stats;
+    var due = NS.srs.dueCount();
+    if (due) root.appendChild(h('a', { class: 'card review-cta', href: '#/srs' },
+      h('span', { class: 'review-ico jp', lang: 'ja', 'aria-hidden': 'true' }, '復'),
+      h('span', null, h('strong', null, 'ทบทวนวันนี้ ' + due + ' รายการ'), h('small', { class: 'muted' }, 'ทบทวนตอนที่ใกล้จะลืม จำได้นานกว่า')),
+      h('span', { class: 'hub-go', 'aria-hidden': 'true' }, '›')));
     root.appendChild(h('a', { class: 'card goal-card', href: '#/calendar', 'aria-label': 'เป้าหมายวันนี้ ดูปฏิทินการเรียน' }, S.goalBar()));
 
     root.appendChild(h('div', { class: 'tiles tiles-4' },

@@ -142,5 +142,20 @@
     });
   }
 
-  NS.sentenceQuiz = { buildGrammar: buildGrammar, buildPhrase: buildPhrase, PARTICLES: PARTICLES };
+  function forItem(it) {
+    var level = NS.progress.find(it.level);
+    if (it.kind === 'phrase') {
+      if (it.blocks.length > 1 && Math.random() < 0.5) return blocksQ(it);
+      return listenQ(it, NS.content.phraseItems(level), NS.content.phrasesBefore(level));
+    }
+    var opts = ['choose'];
+    if (particleIdx(it).length) opts.push('particle');
+    if (it.blocks.length > 1) opts.push('blocks');
+    var t = opts[Math.floor(Math.random() * opts.length)];
+    if (t === 'particle') return particleQ(it);
+    if (t === 'blocks') return blocksQ(it);
+    return chooseQ(it, NS.content.grammarItems(level));
+  }
+
+  NS.sentenceQuiz = { buildGrammar: buildGrammar, buildPhrase: buildPhrase, forItem: forItem, PARTICLES: PARTICLES };
 })();

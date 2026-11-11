@@ -82,5 +82,13 @@
     return picks.map(function (it, idx) { return makeQuestion(it, types[idx], same, prev); });
   }
 
-  NS.kanaQuiz = { build: build };
+  /* คำถาม 1 ข้อจากรายการเดียว (ใช้ในการทบทวน/สมุดคำผิด) */
+  function forItem(it) {
+    var level = NS.progress.find((it.script === 'kata' ? '2-' : '1-') + (it.lv || 6));
+    var same = NS.content.levelItems(level).filter(function (x) { return x.quiz; });
+    var prev = NS.content.prevItems(level).filter(function (x) { return x.quiz; });
+    return makeQuestion(it, TYPES[Math.floor(Math.random() * TYPES.length)], same, prev);
+  }
+
+  NS.kanaQuiz = { build: build, forItem: forItem };
 })();

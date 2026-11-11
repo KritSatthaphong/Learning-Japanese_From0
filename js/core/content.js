@@ -177,7 +177,42 @@
   }
   function allPhrases() { return (NS.PHRASES || []).map(function (p) { return sentenceItem(p); }); }
 
+  /* เด็คของฉัน */
+  function deckItem(d) {
+    return { id: d.id, kind: 'deck', char: d.jp, jp: d.jp, romaji: d.romaji || '', label: d.romaji || '', th: d.th,
+      tip: '', note: '', source: d.source, sound: d.jp, alt: [], quiz: true };
+  }
+
+  /* รวมทุกรายการในแอป (ใช้หาโดย id สำหรับ SRS / สมุดคำผิด) */
+  var cache = null;
+  function staticItems() {
+    if (cache) return cache;
+    var out = [];
+    NS.KANA.forEach(function (k) { out.push(kanaItem(k, 'hira')); out.push(kanaItem(k, 'kata')); });
+    (NS.SOKUON || []).forEach(function (w) { out.push(wordItem(w, 'hira')); });
+    (NS.LOANWORDS || []).forEach(function (w) { out.push(wordItem(w, 'kata')); });
+    (NS.VOCAB || []).forEach(function (v) { out.push(vocabItem(v)); });
+    Object.keys(NS.GRAMMAR || {}).forEach(function (lid) { NS.GRAMMAR[lid].sentences.forEach(function (s) { out.push(sentenceItem(s, lid)); }); });
+    (NS.PHRASES || []).forEach(function (p) { out.push(sentenceItem(p)); });
+    (NS.PAIRS || []).forEach(function (p) {
+      [p.a, p.b].forEach(function (w) {
+        out.push({ id: 'pair-' + w.romaji, kind: 'pair', char: w.kana, label: w.romaji, romaji: w.romaji, th: w.th, sound: w.kana, cat: p.cat, quiz: true });
+      });
+    });
+    cache = {};
+    out.forEach(function (it) { if (!cache[it.id]) cache[it.id] = it; });
+    return cache;
+  }
+  function itemById(id) {
+    var s = staticItems();
+    if (s[id]) return s[id];
+    var d = (NS.store.get().deck || []).find(function (x) { return x.id === id; });
+    return d ? deckItem(d) : null;
+  }
+
   NS.content = {
+    deckItem: deckItem,
+    itemById: itemById,
     sentenceItem: sentenceItem,
     grammarOf: grammarOf,
     grammarItems: grammarItems,

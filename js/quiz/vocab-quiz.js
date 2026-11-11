@@ -68,5 +68,10 @@
     return picks.map(function (it, i) { return makeQuestion(it, types[i], same, prev); });
   }
 
-  NS.vocabQuiz = { build: build };
+  function forItem(it) {
+    var level = NS.progress.find(it.level);
+    return makeQuestion(it, TYPES[Math.floor(Math.random() * TYPES.length)], NS.content.vocabItems(level), NS.content.vocabBefore(level));
+  }
+
+  NS.vocabQuiz = { build: build, forItem: forItem };
 })();

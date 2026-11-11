@@ -8,8 +8,8 @@
 
   NS.pages.review = function (root) {
     NS.ui.hub(root, 'ทบทวน', 'ทบทวนสิ่งที่เรียนไปแล้ว เพื่อให้จำได้นาน', [
-      { icon: '復', title: 'ทบทวนตามรอบ (SRS)', desc: 'ระบบเตือนให้ทบทวนตอนที่ใกล้จะลืม', phase: 4 },
-      { icon: '誤', title: 'สมุดคำผิด', desc: 'รวมข้อที่เคยตอบผิด ฝึกจนถูก 3 ครั้งติด', phase: 4 },
+      { icon: '復', title: 'ทบทวนตามรอบ (SRS)', desc: 'ถึงรอบวันนี้ ' + NS.srs.dueCount() + ' รายการ', href: '#/srs' },
+      { icon: '誤', title: 'สมุดคำผิด', desc: 'ค้างอยู่ ' + NS.mistakes.count() + ' ข้อ · ถูก 3 ครั้งติดจะหายไป', href: '#/mistakes' },
       { icon: '耳', title: 'ฟังแยกเสียงที่คล้ายกัน', desc: 'おばさん / おばあさん, きて / きって', href: '#/pairs' },
       { icon: '遊', title: 'เกมจับคู่จับเวลา', desc: '60 วินาที จับคู่ให้ได้มากที่สุด', phase: 6 }
     ]);
@@ -25,7 +25,7 @@
 
   NS.pages.more = function (root) {
     NS.ui.hub(root, 'เพิ่มเติม', '', [
-      { icon: '札', title: 'เด็คของฉัน', desc: 'เพิ่มวลีเองจากอนิเมะหรือเพื่อนญี่ปุ่น', phase: 4 },
+      { icon: '札', title: 'เด็คของฉัน', desc: 'เพิ่มวลีเองจากอนิเมะหรือเพื่อนญี่ปุ่น (' + NS.store.get().deck.length + ' วลี)', href: '#/deck' },
       { icon: '試', title: 'Pre/Post Test', desc: 'วัดผลก่อน-หลังเรียน พร้อมกราฟและ CSV', phase: 5 },
       { icon: '暦', title: 'ปฏิทินการเรียน', desc: 'เป้าหมายรายวัน + heatmap 12 สัปดาห์', href: '#/calendar' },
       { icon: '報', title: 'สรุปรายงาน PGP', desc: 'สรุปผลการเรียนสำหรับใส่รายงาน', phase: 7 },

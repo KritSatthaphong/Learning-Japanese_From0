@@ -142,6 +142,7 @@
       answered = true;
       var q = current.q;
       if (ok) correct++; else wrong.push(q);
+      if (q.item && q.item.id && NS.mistakes) NS.mistakes.record(q.item.id, ok);
       if (opts.onAnswer) opts.onAnswer(q, ok);
 
       var last = i === total - 1;

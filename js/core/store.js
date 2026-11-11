@@ -15,12 +15,19 @@
         theme: 'auto',       // auto | light | dark
         chartMode: 'hira',   // hira | kata | both
         chartFade: true,     // ทำให้ตัวที่ยังไม่เรียนดูจาง
-        dailyGoal: 50        // เป้า XP ต่อวัน (ใช้ในเฟส 2)
+        dailyGoal: 50        // เป้า XP ต่อวัน
       },
       levels: {},   // { "1-1": { best: 90, stars: 2, passed: true, by: "study", tries: 3, last: "2026-11-11" } }
       learned: {},  // { "h-a": "2026-11-11" } สิ่งที่เปิดเรียนแล้ว (เฟส 4 จะดึงเข้า SRS)
       xpByDay: {},  // { "2026-11-11": 60 }
-      stats: { answered: 0, correct: 0, byStage: {} }
+      stats: { answered: 0, correct: 0, byStage: {} },
+      srs: {},          // { "h-a": { box: 1-5, due: "2026-11-12" } } ทบทวนตามรอบ
+      mistakes: {},     // { "h-a": { count: 2, streak: 0, last: "2026-11-11" } } สมุดคำผิด
+      missTally: {},    // { "h-a": 5 } นับครั้งที่ผิดสะสม (ไม่ลบ ใช้ในสรุปรายงาน)
+      deck: [],         // เด็คของฉัน [{ id, jp, romaji, th, source, created }]
+      speakHistory: [], // ประวัติฝึกพูด [{ id, date, heard, score, verdict }]
+      tests: [],        // ผล Pre/Post Test
+      gameBest: {}      // คะแนนสูงสุดเกมจับคู่ { hira: 12 }
     };
   }
 
@@ -38,7 +45,8 @@
         state = Object.assign({}, d, saved);
         state.settings = Object.assign({}, d.settings, isObj(saved.settings) ? saved.settings : {});
         state.stats = Object.assign({}, d.stats, isObj(saved.stats) ? saved.stats : {});
-        ['levels', 'learned', 'xpByDay'].forEach(function (k) { if (!isObj(state[k])) state[k] = {}; });
+        ['levels', 'learned', 'xpByDay', 'srs', 'mistakes', 'missTally', 'gameBest'].forEach(function (k) { if (!isObj(state[k])) state[k] = {}; });
+        ['deck', 'speakHistory', 'tests'].forEach(function (k) { if (!Array.isArray(state[k])) state[k] = []; });
         if (!isObj(state.stats.byStage)) state.stats.byStage = {};
       }
     } catch (e) {

@@ -429,6 +429,29 @@ a.hub-item:hover { border-color: var(--primary); }
 .pb-tools { display: grid; gap: 10px; margin: 8px 0; }
 .intro h3 { margin-bottom: 6px; }
 
+
+/* ---------- ทบทวน / สมุดคำผิด / เด็ค ---------- */
+.review-cta { display: flex; align-items: center; gap: 12px; margin-top: 12px; text-decoration: none; color: var(--text); border-color: var(--primary); }
+.review-cta > span:nth-child(2) { flex: 1; display: grid; }
+.review-ico { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--primary); color: var(--primary-ink); font-size: 1.2rem; }
+.srs-hero { display: grid; gap: 12px; text-align: center; margin: 12px 0; }
+.srs-due { display: grid; }
+.srs-due strong { font-size: 3rem; line-height: 1.1; color: var(--primary); }
+.boxes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center; }
+.box-col { display: grid; gap: 2px; justify-items: center; }
+.box-bar { width: 100%; height: 90px; background: var(--surface-2); border-radius: 8px; display: flex; align-items: flex-end; overflow: hidden; }
+.box-fill { width: 100%; background: var(--primary); border-radius: 8px 8px 0 0; }
+.mistake-list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+.mistake { display: flex; align-items: center; gap: 8px; padding: 10px 8px 10px 12px; }
+.mistake-main { flex: 1; display: flex; gap: 12px; align-items: center; background: none; border: 0; padding: 0; text-align: left; color: var(--text); font: inherit; cursor: pointer; min-width: 0; }
+.mistake-char { font-size: 1.5rem; flex: none; max-width: 55%; overflow-wrap: anywhere; }
+.mistake-info { display: grid; min-width: 0; }
+.dots span { color: var(--border); margin-left: 2px; }
+.dots span.on { color: var(--ok); }
+.icon-btn.small { min-width: 36px; min-height: 36px; font-size: 1rem; color: var(--muted); }
+.deck-io { margin: 10px 0; }
+select.input { appearance: auto; }
+
 /* ---------- โหมดข้อมูลตัวอย่าง ---------- */
 .demo-banner { position: sticky; top: var(--topbar-h); z-index: 25; background: #2b4c7e; color: #fff; align-items: center; flex-wrap: wrap; }
 .demo-banner .btn { background: rgba(255,255,255,.18); color: #fff; }

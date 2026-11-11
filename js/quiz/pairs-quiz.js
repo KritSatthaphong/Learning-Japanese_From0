@@ -65,5 +65,18 @@
     }));
   }
 
-  NS.pairsQuiz = { build: build, list: list };
+  function forItem(it) {
+    var p = NS.PAIRS.find(function (x) { return 'pair-' + x.a.romaji === it.id || 'pair-' + x.b.romaji === it.id; });
+    var a = side(p.a, 'a'), b = side(p.b, 'b');
+    var target = it.id === a.id ? a : b;
+    var c = catOf(p.cat);
+    return {
+      type: 'pair', item: target, answerId: target.id, label: 'ได้ยินคำไหน?',
+      prompt: { audio: target.sound },
+      choices: shuffle([a, b]).map(function (s) { return { id: s.id, label: s.char, jp: true, sub: s.label + ' · ' + s.th }; }),
+      reveal: { title: target.char + ' (' + target.label + ')', detail: c.title + ': ' + p.a.kana + ' = ' + p.a.th + '  ↔  ' + p.b.kana + ' = ' + p.b.th, speak: target.sound }
+    };
+  }
+
+  NS.pairsQuiz = { build: build, list: list, forItem: forItem };
 })();
