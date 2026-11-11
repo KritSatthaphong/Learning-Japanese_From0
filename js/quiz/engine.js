@@ -46,7 +46,7 @@
             onclick: function () { NS.speech.speak(p.audio, { rate: 0.5 }); } }, '🐢 ฟังช้า'));
       }
       return h('div', { class: 'q-prompt' },
-        p.jp ? NS.ui.jp(p.text, 'q-big') : h('span', { class: 'q-big q-latin' }, p.text),
+        p.jp ? NS.ui.jp(p.text, 'q-big') : h('span', { class: 'q-big ' + (p.th ? 'q-th' : 'q-latin') }, p.text),
         p.sub ? h('div', { class: 'muted' }, p.sub) : null);
     }
 
@@ -66,7 +66,7 @@
       q.choices.forEach(function (c, ci) {
         var b = h('button', { class: 'choice', type: 'button', onclick: function () { pick(c, b); } },
           h('span', { class: 'choice-num', 'aria-hidden': 'true' }, String(ci + 1)),
-          c.jp ? NS.ui.jp(c.label, 'choice-main choice-jp') : h('span', { class: 'choice-main choice-latin' }, c.label),
+          c.jp ? NS.ui.jp(c.label, 'choice-main choice-jp' + (c.label.length > 3 ? ' long' : '')) : h('span', { class: 'choice-main choice-latin' }, c.label),
           c.sub ? h('span', { class: 'choice-sub' }, c.sub) : null);
         b._choice = c;
         btns.push(b);

@@ -42,15 +42,15 @@ NS.PATH = [
     ]
   },
   {
-    id: 3, title: "คำศัพท์", sub: "คำที่ใช้บ่อย ด่านละ 10 คำ",
+    id: 3, title: "คำศัพท์", sub: "คำที่ใช้บ่อย ด่านละ 10 คำ (คันจิแสดงตัวเล็กไว้ดูเฉยๆ ยังไม่ต้องจำ)",
     levels: [
-      { id: "3-1", kind: "vocab", title: "ตัวเลข 1–10", desc: "いち に さん …", soon: 2 },
-      { id: "3-2", kind: "vocab", title: "คนและครอบครัว", desc: "わたし ともだち …", soon: 2 },
-      { id: "3-3", kind: "vocab", title: "อาหารและเครื่องดื่ม", desc: "みず ごはん …", soon: 2 },
-      { id: "3-4", kind: "vocab", title: "สถานที่", desc: "えき トイレ …", soon: 2 },
-      { id: "3-5", kind: "vocab", title: "คำกริยา (ます)", desc: "たべます のみます …", soon: 2 },
-      { id: "3-6", kind: "vocab", title: "คำคุณศัพท์", desc: "おいしい たかい …", soon: 2 },
-      { id: "3-7", kind: "vocab", title: "เวลา", desc: "きょう あした …", soon: 2 }
+      { id: "3-1", kind: "vocab", title: "ตัวเลข 1–10", desc: "いち に さん …" },
+      { id: "3-2", kind: "vocab", title: "คนและครอบครัว", desc: "わたし ともだち …" },
+      { id: "3-3", kind: "vocab", title: "อาหารและเครื่องดื่ม", desc: "みず ごはん …" },
+      { id: "3-4", kind: "vocab", title: "สถานที่", desc: "えき トイレ …" },
+      { id: "3-5", kind: "vocab", title: "คำกริยา (ます)", desc: "たべます のみます …" },
+      { id: "3-6", kind: "vocab", title: "คำคุณศัพท์", desc: "おいしい たかい …" },
+      { id: "3-7", kind: "vocab", title: "เวลา", desc: "きょう あした …" }
     ]
   },
   {

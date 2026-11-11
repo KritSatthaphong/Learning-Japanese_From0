@@ -26,7 +26,7 @@
     return h('button', { class: 'kana-card' + (big ? ' big' : '') + (it.kind === 'vocab' ? ' vocab' : ''), type: 'button',
       'aria-label': it.char + ' อ่านว่า ' + it.label + (it.th ? ' แปลว่า ' + it.th : '') + ' แตะเพื่อฟัง',
       onclick: function () { NS.speech.speak(it.sound); } },
-      it.kanji ? NS.ui.jp(it.kanji, 'kana-kanji') : null,
+      it.kanji ? h('span', { class: 'kana-kanji' }, 'คันจิ ', NS.ui.jp(it.kanji)) : null,
       NS.ui.jp(it.char, 'kana-char'),
       h('span', { class: 'kana-romaji' }, it.label),
       it.kind === 'vocab' ? h('span', { class: 'kana-th' }, it.th) : null,

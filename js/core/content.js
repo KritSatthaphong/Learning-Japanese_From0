@@ -109,7 +109,40 @@
       .map(function (k) { return kanaItem(k, level.script); });
   }
 
+  /* คำศัพท์ขั้น 3 */
+  function vocabItem(v) {
+    return {
+      id: 'v-' + v.romaji,
+      kind: 'vocab',
+      char: v.kana,
+      kanji: v.kanji || '',
+      romaji: v.romaji,
+      label: v.romaji,
+      th: v.th,
+      tip: v.note || '',
+      note: '',
+      level: v.level,
+      quiz: true,
+      sound: v.kana,
+      soundKey: v.kana,
+      alt: v.alt || [],
+      verify: !!v.verify
+    };
+  }
+
+  function vocabItems(level) {
+    return (NS.VOCAB || []).filter(function (v) { return v.level === level.id; }).map(vocabItem);
+  }
+
+  /* คำศัพท์จากด่านก่อนหน้าในขั้นคำศัพท์ (ใช้เป็นตัวเลือกหลอก) */
+  function vocabBefore(level) {
+    return (NS.VOCAB || []).filter(function (v) { return v.level < level.id; }).map(vocabItem);
+  }
+
   NS.content = {
+    vocabItem: vocabItem,
+    vocabItems: vocabItems,
+    vocabBefore: vocabBefore,
     romajiLabel: romajiLabel,
     kanaItem: kanaItem,
     kanaId: kanaId,
