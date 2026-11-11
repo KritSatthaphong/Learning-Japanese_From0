@@ -18,7 +18,7 @@
   NS.pages.speak = function (root) {
     NS.ui.hub(root, 'ฝึกพูด', 'พูดใส่ไมค์แล้วให้แอปตรวจ หรือคุยกับ AI', [
       { icon: '話', title: 'Speaking Check', desc: 'พูดวลี แล้วดูว่าตรงแค่ไหน + อัดเสียงฟังเทียบ', phase: 5 },
-      { icon: '句', title: 'Phrasebook', desc: 'วลีเอาตัวรอดแยกตามสถานการณ์', phase: 3 },
+      { icon: '句', title: 'Phrasebook', desc: 'วลีเอาตัวรอดแยกตามสถานการณ์', href: '#/phrasebook' },
       { icon: 'AI', title: 'Prompt Library', desc: 'prompt สำเร็จรูปให้ ChatGPT/Claude เล่นบทบาทคุยด้วย', phase: 7 }
     ]);
   };
