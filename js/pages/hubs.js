@@ -29,6 +29,7 @@
       { icon: '試', title: 'Pre/Post Test', desc: 'วัดผลก่อน-หลังเรียน พร้อมกราฟและ CSV', href: '#/test' },
       { icon: '暦', title: 'ปฏิทินการเรียน', desc: 'เป้าหมายรายวัน + heatmap 12 สัปดาห์', href: '#/calendar' },
       { icon: '報', title: 'สรุปรายงาน PGP', desc: 'สรุปผลการเรียนสำหรับใส่รายงาน', href: '#/report' },
+      { icon: '人', title: 'บัญชี', desc: NS.cloud.configured ? (NS.cloud.user ? 'เข้าสู่ระบบ: ' + NS.cloud.user.email : 'เข้าสู่ระบบเพื่อซิงก์ข้อมูลข้ามเครื่อง') : 'ยังไม่ได้เชื่อมต่อ Supabase', href: '#/account' },
       { icon: '⚙', title: 'ตั้งค่า', desc: 'ความเร็วเสียง, เป้า XP, เปิดทุกด่าน, ธีม, ล้างข้อมูล', href: '#/settings' }
     ]);
   };

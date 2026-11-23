@@ -39,6 +39,18 @@
 จะได้ไอคอนแอป เปิดเต็มจอไม่มีแถบเบราว์เซอร์ · หน้าคัดมีโหมดกันฝ่ามือสำหรับ Apple Pencil และโหมดเขียนเต็มจอ
 > หมายเหตุ: แอปบนหน้าโฮมของ iPad เก็บข้อมูลแยกจาก Safari ใช้ ⚙ ตั้งค่า → สำรอง/นำเข้าข้อมูล เพื่อย้ายความคืบหน้า
 
+### ระบบบัญชี (Supabase) — ไม่บังคับ
+ถ้าตั้งค่า Supabase แล้ว ผู้ใช้จะสมัคร/เข้าสู่ระบบด้วยอีเมล + รหัสผ่าน และความคืบหน้า + ภาพลายมือจะซิงก์ข้ามเครื่องได้ (ไฟล์เสียงไม่ซิงก์)
+ถ้าไม่ตั้งค่า แอปทำงานแบบเก็บในเครื่องอย่างเดียวเหมือนเดิม
+
+1. สมัคร https://supabase.com (ฟรี) → **New project** (ภูมิภาค Southeast Asia (Singapore))
+2. **SQL Editor** → วางไฟล์ [`supabase/setup.sql`](supabase/setup.sql) ทั้งไฟล์ → **Run** (สร้างตาราง + RLS ให้แต่ละบัญชีเห็นเฉพาะข้อมูลตัวเอง)
+3. **Authentication → URL Configuration** → Site URL = ลิงก์ GitHub Pages ของแอป (และเพิ่มใน Redirect URLs)
+4. **Project Settings → API** → คัดลอก **Project URL** และ **anon / publishable key** ใส่ใน [`js/config.js`](js/config.js)
+   ⚠️ ห้ามใส่ **service_role / secret key** ในเว็บเด็ดขาด
+
+ความเป็นส่วนตัว: อีเมลและรหัสผ่านเก็บโดย Supabase Auth · ความคืบหน้าเก็บเป็น JSON ในตาราง `progress` · ภาพลายมือในตาราง `writing_samples` · ออกจากระบบแล้วข้อมูลในเครื่องถูกล้าง (ยังอยู่ในบัญชี) · ถ้าใช้ 2 เครื่องพร้อมกัน ข้อมูลที่บันทึกทีหลังจะทับของเดิม
+
 ### แก้เนื้อหาเอง
 ข้อมูลบทเรียนแยกอยู่ในโฟลเดอร์ `data/` เป็นไฟล์ `.js` ที่มีคำอธิบายภาษาไทยด้านบน แก้ด้วย Notepad / VS Code ได้เลย
 | ไฟล์ | เนื้อหา |
@@ -61,7 +73,8 @@
 ### เครดิต
 - เสียงอ่านและการถอดเสียงมาจาก Web Speech API ของเบราว์เซอร์ (ผลขึ้นกับเบราว์เซอร์และเสียงที่ติดตั้งในเครื่อง)
 - เส้นนำในหน้าฝึกเขียนวาดจากฟอนต์ภาษาญี่ปุ่นของเครื่องผู้ใช้ — **ไม่ได้ใช้ข้อมูล KanjiVG** (ยังไม่มีการแสดงลำดับขีด)
-- ไม่ได้ใช้โค้ดจากโปรเจกต์ Capstone ของเพื่อน (ไม่ได้มีการส่งโค้ดเข้ามาในโปรเจกต์นี้) และไม่ได้ใช้ไลบรารีภายนอก
+- ไม่ได้ใช้โค้ดจากโปรเจกต์ Capstone ของเพื่อน (ไม่ได้มีการส่งโค้ดเข้ามาในโปรเจกต์นี้)
+- ไลบรารีภายนอกตัวเดียว: [supabase-js](https://github.com/supabase/supabase-js) 2.119.0 (MIT License) เก็บสำเนาไว้ที่ `js/vendor/` ใช้เฉพาะระบบบัญชี
 - สีกราฟ Pre/Post ผ่านการตรวจความแตกต่างสำหรับผู้มีภาวะตาบอดสี
 
 ---
@@ -76,7 +89,7 @@ A mobile-first, Thai-language web app that takes an absolute beginner from kana 
 - **Speaking:** Speaking Check (speech recognition, normalised kana/kanji comparison → match / close / miss), record-and-compare, phrasebook, role-play prompt library for ChatGPT/Claude voice mode.
 - **Measurement:** fixed-seed Pre/Post test (reading 20, listening 10, speaking 18) with a comparison bar chart and CSV export; one-page PGP report (copy as text / CSV / print).
 
-Uses only browser APIs (`speechSynthesis`, `SpeechRecognition`, `MediaRecorder`, `localStorage`, `IndexedDB`). **No API keys, no server, no paid services; all data stays in the browser.**
+Uses only browser APIs (`speechSynthesis`, `SpeechRecognition`, `MediaRecorder`, `localStorage`, `IndexedDB`); no paid services. **Optional accounts:** if `js/config.js` holds a Supabase project URL + anon key, users can sign up / log in (email + password) and progress plus handwriting samples sync across devices via two RLS-protected tables (`supabase/setup.sql`). Without it, all data stays in the browser.
 
 ### Run it
 Static site, no build step:
@@ -88,4 +101,4 @@ Static site, no build step:
 Developed together with **Claude Code (Anthropic)**. The learner set the requirements, tested each phase and made the decisions; the AI wrote the code and content. Every session — including the AI's mistakes and overreach — is logged in [`DEV_LOG.md`](DEV_LOG.md). Japanese content was AI-generated; items flagged `verify: true` are listed in [`VERIFY.md`](VERIFY.md) for review by a native speaker.
 
 ### Credits
-Speech synthesis/recognition by the browser's Web Speech API. The writing guide is rendered from the device's Japanese font; KanjiVG stroke data is **not** used. No third-party libraries. No code from the friend's Capstone project was used.
+Speech synthesis/recognition by the browser's Web Speech API. The writing guide is rendered from the device's Japanese font; KanjiVG stroke data is **not** used. One third-party library: supabase-js 2.119.0 (MIT), vendored in `js/vendor/`, used only for optional accounts. No code from the friend's Capstone project was used.

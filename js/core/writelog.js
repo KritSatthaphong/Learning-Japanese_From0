@@ -67,14 +67,39 @@
     });
   }
 
-  function addSample(rec) {
+  /* เพิ่ม/แก้แถว คืนค่า id ของแถว (null ถ้าเก็บไม่ได้) */
+  function writeRow(rec, op) {
     return openDB().then(function (db) {
-      if (!db) return;
-      try {
-        var tx = db.transaction(STORE, 'readwrite');
-        tx.objectStore(STORE).add(rec);
-        tx.onerror = function () { if (NS.ui) NS.ui.toast('เก็บภาพลายมือไม่ได้ (พื้นที่ในเครื่องอาจเต็ม)'); };
-      } catch (e) { /* ignore */ }
+      if (!db) return null;
+      return new Promise(function (resolve) {
+        try {
+          var tx = db.transaction(STORE, 'readwrite');
+          var req = tx.objectStore(STORE)[op || 'add'](rec);
+          tx.oncomplete = function () { resolve(req.result); };
+          tx.onerror = function () {
+            if (NS.ui && op !== 'put') NS.ui.toast('เก็บภาพลายมือไม่ได้ (พื้นที่ในเครื่องอาจเต็ม)');
+            resolve(null);
+          };
+        } catch (e) { resolve(null); }
+      });
+    });
+  }
+  function getRow(id) {
+    return openDB().then(function (db) {
+      if (!db) return null;
+      return new Promise(function (resolve) {
+        try {
+          var req = db.transaction(STORE, 'readonly').objectStore(STORE).get(id);
+          req.onsuccess = function () { resolve(req.result || null); };
+          req.onerror = function () { resolve(null); };
+        } catch (e) { resolve(null); }
+      });
+    });
+  }
+  function addSample(rec) {
+    return writeRow(rec, 'add').then(function (id) {
+      if (id != null && NS.cloud) NS.cloud.queueSamples();
+      return id;
     });
   }
 
@@ -134,11 +159,25 @@
     allSamples: function () { return readAll(null); },
 
     removeSample: function (id) {
-      return openDB().then(function (db) {
+      return getRow(id).then(function (row) {
+        if (row && row.cid && NS.cloud) NS.cloud.deleteSample(row.cid);
+        return openDB();
+      }).then(function (db) {
         if (!db) return;
-        try { db.transaction(STORE, 'readwrite').objectStore(STORE).delete(id); } catch (e) { /* ignore */ }
+        return new Promise(function (resolve) {
+          try {
+            var tx = db.transaction(STORE, 'readwrite');
+            tx.objectStore(STORE).delete(id);
+            tx.oncomplete = resolve; tx.onerror = resolve;
+          } catch (e) { resolve(); }
+        });
       });
     },
+
+    /* ใช้โดยระบบซิงก์ (cloud.js) */
+    _rows: function () { return readAll(null); },
+    _add: function (rec) { return writeRow(rec, 'add'); },
+    _put: function (rec) { return writeRow(rec, 'put'); },
 
     totals: function () {
       var L = log(), cn = 0, cu = 0, sn = 0, su = 0;
@@ -150,7 +189,13 @@
     clearSamples: function () {
       return openDB().then(function (db) {
         if (!db) return;
-        try { db.transaction(STORE, 'readwrite').objectStore(STORE).clear(); } catch (e) { /* ignore */ }
+        return new Promise(function (resolve) {
+          try {
+            var tx = db.transaction(STORE, 'readwrite');
+            tx.objectStore(STORE).clear();
+            tx.oncomplete = resolve; tx.onerror = resolve;
+          } catch (e) { resolve(); }
+        });
       });
     }
   };

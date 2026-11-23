@@ -63,6 +63,7 @@
     try {
       localStorage.setItem(KEY, JSON.stringify(state));
       ok = true;
+      if (NS.cloud && NS.cloud.markDirty) NS.cloud.markDirty();   // ซิงก์ขึ้นบัญชี (ถ้าเข้าสู่ระบบอยู่)
     } catch (e) {
       ok = false;
       if (NS.ui) NS.ui.toast('บันทึกความคืบหน้าไม่ได้ (เบราว์เซอร์อาจอยู่ในโหมดไม่ระบุตัวตน)');

@@ -53,5 +53,6 @@
   NS.speech.onChange(updateBanner);
   NS.speech.init();
   updateBanner();
+  if (NS.cloud) NS.cloud.init();
   NS.router.start();
 })();

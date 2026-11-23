@@ -680,6 +680,21 @@ body.write-focus .write-btns { justify-content: center; margin-top: 10px; }
 .wl-title-small { font-size: 2rem; }
 @media (min-width: 700px) { .wg-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } }
 
+
+/* ---------- บัญชี ---------- */
+.topbar-actions { display: flex; align-items: center; gap: 2px; }
+.acct-btn { position: relative; }
+.acct-dot { position: absolute; right: 8px; bottom: 9px; width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--surface); background: var(--border); }
+.acct-dot.s-ok { background: var(--ok); }
+.acct-dot.s-pending, .acct-dot.s-syncing { background: var(--warn); }
+.acct-dot.s-error { background: var(--bad); }
+.acct-form { margin-top: 10px; }
+.acct-row { display: flex; gap: 12px; align-items: center; }
+.acct-avatar { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--primary); color: var(--primary-ink); font-weight: 800; font-size: 1.2rem; }
+.acct-status { font-weight: 600; }
+.acct-list { margin: 0; padding-left: 18px; }
+.page-account section.card { margin-bottom: 10px; }
+
 /* ---------- โหมดข้อมูลตัวอย่าง ---------- */
 .demo-banner { position: sticky; top: var(--topbar-h); z-index: 25; background: #2b4c7e; color: #fff; align-items: center; flex-wrap: wrap; }
 .demo-banner .btn { background: rgba(255,255,255,.18); color: #fff; }

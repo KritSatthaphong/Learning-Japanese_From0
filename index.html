@@ -19,7 +19,10 @@
 <body>
   <header class="topbar">
     <a href="#/home" class="brand"><span class="brand-jp" lang="ja">日本語</span> Nihongo Survival</a>
-    <a href="#/settings" class="icon-btn" aria-label="ตั้งค่า">⚙</a>
+    <span class="topbar-actions">
+      <a href="#/account" id="acct" class="icon-btn acct-btn" aria-label="บัญชี" hidden>👤<span class="acct-dot"></span></a>
+      <a href="#/settings" class="icon-btn" aria-label="ตั้งค่า">⚙</a>
+    </span>
   </header>
 
   <div id="banner"></div>
@@ -38,6 +41,10 @@
   <div id="modal-root"></div>
 
   <noscript><p style="padding:16px">แอปนี้ต้องเปิด JavaScript</p></noscript>
+
+  <!-- ตั้งค่า Supabase (ระบบบัญชี) + ไลบรารี supabase-js 2.119.0 (MIT) -->
+  <script src="js/config.js"></script>
+  <script src="js/vendor/supabase-2.119.0.js"></script>
 
   <!-- ข้อมูลบทเรียน (แก้ไขได้) -->
   <script src="data/kana.js"></script>
@@ -58,6 +65,7 @@
   <script src="js/core/demo.js"></script>
   <script src="js/core/srs.js"></script>
   <script src="js/core/writelog.js"></script>
+  <script src="js/core/cloud.js"></script>
   <script src="js/core/normalize.js"></script>
   <script src="js/core/recorder.js"></script>
   <script src="js/core/router.js"></script>
@@ -87,6 +95,7 @@
   <script src="js/pages/write.js"></script>
   <script src="js/pages/writelog.js"></script>
   <script src="js/pages/writegallery.js"></script>
+  <script src="js/pages/account.js"></script>
   <script src="js/pages/exam.js"></script>
   <script src="js/pages/prompts.js"></script>
   <script src="js/pages/report.js"></script>
