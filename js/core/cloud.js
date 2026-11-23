@@ -39,7 +39,7 @@
     var m = (e && (e.message || e.error_description || e.msg)) || String(e || '');
     if (/Invalid login credentials/i.test(m)) return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
     if (/Email not confirmed/i.test(m)) return 'ยังไม่ได้ยืนยันอีเมล — เปิดลิงก์ในอีเมลที่ส่งไปก่อน';
-    if (/User already registered/i.test(m)) return 'อีเมลนี้สมัครไว้แล้ว ลองเข้าสู่ระบบแทน';
+    if (/User already registered/i.test(m)) return 'อีเมลนี้ลงทะเบียนไว้แล้ว ลองเข้าสู่ระบบแทน';
     if (/Password should be at least/i.test(m)) return 'รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร';
     if (/rate limit/i.test(m)) return 'ส่งคำขอบ่อยเกินไป รอสักครู่แล้วลองใหม่';
     if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'เชื่อมต่ออินเทอร์เน็ตไม่ได้';

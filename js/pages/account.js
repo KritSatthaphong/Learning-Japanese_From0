@@ -1,5 +1,5 @@
 /*
- * account.js — หน้าบัญชี: สมัคร / เข้าสู่ระบบ / ออกจากระบบ / สถานะการซิงก์
+ * account.js — หน้าบัญชี: ลงทะเบียน / เข้าสู่ระบบ / ออกจากระบบ / สถานะการซิงก์
  */
 (function () {
   'use strict';
@@ -30,13 +30,13 @@
       if (C.user) { renderUser(); return; }
 
       root.appendChild(h('p', { class: 'muted' }, 'เข้าสู่ระบบเพื่อเก็บความคืบหน้าไว้ในบัญชี แล้วเปิดต่อได้ทุกเครื่อง (iPad / มือถือ / คอม)'));
-      root.appendChild(NS.ui.segmented([{ value: 'login', label: 'เข้าสู่ระบบ' }, { value: 'signup', label: 'สมัครสมาชิก' }], tab,
+      root.appendChild(NS.ui.segmented([{ value: 'login', label: 'เข้าสู่ระบบ' }, { value: 'signup', label: 'ลงทะเบียน' }], tab,
         function (v) { tab = v; render(); }, 'เลือก'));
 
       var email = h('input', { type: 'email', class: 'input', autocomplete: 'email', inputmode: 'email', placeholder: 'อีเมล', required: true, 'aria-label': 'อีเมล' });
       var pw = h('input', { type: 'password', class: 'input', autocomplete: tab === 'signup' ? 'new-password' : 'current-password', placeholder: 'รหัสผ่าน (อย่างน้อย 6 ตัว)', required: true, minlength: '6', 'aria-label': 'รหัสผ่าน' });
       var msg = h('div', { 'aria-live': 'polite' });
-      var submit = h('button', { class: 'btn btn-primary btn-block btn-lg', type: 'submit' }, tab === 'signup' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ');
+      var submit = h('button', { class: 'btn btn-primary btn-block btn-lg', type: 'submit' }, tab === 'signup' ? 'ลงทะเบียน' : 'เข้าสู่ระบบ');
 
       function show(text, cls) { msg.innerHTML = ''; if (text) msg.appendChild(h('p', { class: 'notice ' + (cls || '') }, text)); }
 
@@ -65,7 +65,7 @@
       root.appendChild(h('section', { class: 'card stack-sm' },
         h('h2', { class: 'section-title flush' }, 'ข้อมูลในเครื่องตอนนี้'),
         h('p', { class: 'small' }, 'ผ่าน ' + NS.progress.passedCount() + ' ด่าน · XP ' + NS.stats.total() + ' · คัด ' + NS.writeLog.totals().charWrites + ' ครั้ง'),
-        h('p', { class: 'muted small' }, 'ถ้าสมัครบัญชีใหม่ ข้อมูลในเครื่องนี้จะถูกอัปโหลดเข้าบัญชีให้ · ถ้าเข้าสู่ระบบบัญชีที่มีข้อมูลอยู่แล้ว แอปจะถามว่าจะใช้ข้อมูลชุดไหน'),
+        h('p', { class: 'muted small' }, 'ถ้าลงทะเบียนบัญชีใหม่ ข้อมูลในเครื่องนี้จะถูกอัปโหลดเข้าบัญชีให้ · ถ้าเข้าสู่ระบบบัญชีที่มีข้อมูลอยู่แล้ว แอปจะถามว่าจะใช้ข้อมูลชุดไหน'),
         NS.demo.isOn() ? h('p', { class: 'notice warn small' }, '⚠️ ตอนนี้เปิดโหมดข้อมูลตัวอย่างอยู่ ข้อมูลตัวอย่างจะไม่ถูกส่งขึ้นบัญชี') : null));
     }
 
