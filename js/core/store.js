@@ -27,7 +27,8 @@
       deck: [],         // เด็คของฉัน [{ id, jp, romaji, th, source, created }]
       speakHistory: [], // ประวัติฝึกพูด [{ id, date, heard, score, verdict }]
       tests: [],        // ผล Pre/Post Test
-      gameBest: {}      // คะแนนสูงสุดเกมจับคู่ { hira: 12 }
+      gameBest: {},     // คะแนนสูงสุดเกมจับคู่ { hira: 12 }
+      writeLog: { chars: {}, sents: {} }  // บันทึกการคัด { chars: { 'あ': { n: 5, best: 80 } }, sents: {...} }
     };
   }
 
@@ -46,6 +47,9 @@
         state.settings = Object.assign({}, d.settings, isObj(saved.settings) ? saved.settings : {});
         state.stats = Object.assign({}, d.stats, isObj(saved.stats) ? saved.stats : {});
         ['levels', 'learned', 'xpByDay', 'srs', 'mistakes', 'missTally', 'gameBest'].forEach(function (k) { if (!isObj(state[k])) state[k] = {}; });
+        if (!isObj(state.writeLog)) state.writeLog = {};
+        if (!isObj(state.writeLog.chars)) state.writeLog.chars = {};
+        if (!isObj(state.writeLog.sents)) state.writeLog.sents = {};
         ['deck', 'speakHistory', 'tests'].forEach(function (k) { if (!Array.isArray(state[k])) state[k] = []; });
         if (!isObj(state.stats.byStage)) state.stats.byStage = {};
       }

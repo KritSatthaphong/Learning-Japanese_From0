@@ -102,7 +102,12 @@
 
       root.appendChild(h('a', { class: 'hub-item card no-print', href: '#/write' },
         h('span', { class: 'hub-ico jp', lang: 'ja', 'aria-hidden': 'true' }, '書'),
-        h('span', { class: 'hub-text' }, h('strong', null, 'ฝึกเขียนด้วยนิ้ว'), h('small', { class: 'muted' }, 'ลากตามเส้นนำแล้วให้คะแนน')),
+        h('span', { class: 'hub-text' }, h('strong', null, 'ฝึกเขียน (คัด)'), h('small', { class: 'muted' }, 'คัดตัวอักษร หรือคัดประโยค "ญี่ปุ่น = ไทย" พร้อมคำใบ้โรมันจิ')),
+        h('span', { class: 'hub-go', 'aria-hidden': 'true' }, '›')));
+      var T = NS.writeLog.totals();
+      root.appendChild(h('a', { class: 'hub-item card no-print', href: '#/writelog' },
+        h('span', { class: 'hub-ico jp', lang: 'ja', 'aria-hidden': 'true' }, '録'),
+        h('span', { class: 'hub-text' }, h('strong', null, 'บันทึกการคัด'), h('small', { class: 'muted' }, 'ตารางนับว่าคัดแต่ละตัวไปกี่ครั้ง · คัดแล้ว ' + T.charWrites + ' ตัว / ' + T.sentWrites + ' ประโยค')),
         h('span', { class: 'hub-go', 'aria-hidden': 'true' }, '›')));
     }
     render();

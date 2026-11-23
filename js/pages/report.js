@@ -33,7 +33,8 @@
       acc: acc, missed: missed, pre: pre, post: post,
       deck: s.deck.length, srsItems: Object.keys(s.srs).length,
       speakCount: speak.length, speakMatch: speak.filter(function (x) { return x.verdict === 'match'; }).length,
-      gameBest: s.gameBest
+      gameBest: s.gameBest,
+      write: NS.writeLog.totals()
     };
   }
 
@@ -60,6 +61,7 @@
     if (!d.missed.length) L.push('- (ยังไม่มี)');
     d.missed.forEach(function (x, i) { L.push((i + 1) + '. ' + x.it.char + ' (' + [x.it.label, x.it.th].filter(Boolean).join(' / ') + ') ผิด ' + x.n + ' ครั้ง'); });
     L.push('');
+    L.push('คัดตัวอักษร: ' + d.write.charWrites + ' ครั้ง (' + d.write.charsUsed + ' ตัว) · คัดประโยค: ' + d.write.sentWrites + ' ครั้ง (' + d.write.sentsUsed + ' ประโยค)');
     L.push('ฝึกพูด: ' + d.speakCount + ' ครั้ง (ตรง ' + d.speakMatch + ' ครั้ง) · วลีในเด็คของฉัน: ' + d.deck + ' วลี · รายการในระบบทบทวน: ' + d.srsItems);
     return L.join('\n');
   }
@@ -80,6 +82,8 @@
     });
     d.missed.forEach(function (x, i) { add('most_missed_' + (i + 1), x.it.char + ' (' + x.n + ')'); });
     add('speak_attempts', d.speakCount); add('speak_match', d.speakMatch);
+    add('write_char_count', d.write.charWrites); add('write_chars_used', d.write.charsUsed);
+    add('write_sentence_count', d.write.sentWrites); add('write_sentences_used', d.write.sentsUsed);
     add('deck_phrases', d.deck); add('srs_items', d.srsItems);
     return rows.map(function (r) { return r.map(function (c) { c = String(c); return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(','); }).join('\n');
   }
@@ -126,6 +130,7 @@
 
     root.appendChild(h('section', { class: 'card' }, h('h2', { class: 'section-title flush' }, 'อื่นๆ'),
       h('ul', null,
+        h('li', null, 'คัดตัวอักษร ' + d.write.charWrites + ' ครั้ง (' + d.write.charsUsed + ' ตัว) · คัดประโยค ' + d.write.sentWrites + ' ครั้ง'),
         h('li', null, 'ฝึกพูด ' + d.speakCount + ' ครั้ง · ตรง ' + d.speakMatch + ' ครั้ง'),
         h('li', null, 'วลีในเด็คของฉัน ' + d.deck + ' วลี'),
         h('li', null, 'รายการในระบบทบทวนตามรอบ ' + d.srsItems + ' รายการ'),

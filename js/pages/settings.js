@@ -90,7 +90,7 @@
           body: h('div', null, h('p', null, 'ความคืบหน้า ดาว และสถิติทั้งหมดจะถูกลบ และกู้คืนไม่ได้'), h('p', { class: 'muted small' }, 'การตั้งค่าจะกลับเป็นค่าเริ่มต้นด้วย')),
           actions: [
             { label: 'ยกเลิก', cls: 'btn-soft' },
-            { label: 'ลบทั้งหมด', cls: 'btn-danger', onClick: function () { NS.store.reset(); NS.app.applyTheme(); NS.ui.toast('ล้างข้อมูลแล้ว'); NS.router.go('#/home'); } }
+            { label: 'ลบทั้งหมด', cls: 'btn-danger', onClick: function () { NS.store.reset(); NS.writeLog.clearSamples(); NS.audioDB.clear(); NS.app.applyTheme(); NS.ui.toast('ล้างข้อมูลแล้ว'); NS.router.go('#/home'); } }
           ]
         });
       } }, '🗑 ล้างข้อมูลทั้งหมด')));

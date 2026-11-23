@@ -566,6 +566,64 @@ select.input { appearance: auto; }
   .meter, .meter span, .pp-bar, .sw { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
+
+/* ---------- บันทึกการคัด ---------- */
+:root { --wl-ink3: #fff; --wl-ink4: #fff; }
+:root[data-theme="dark"] { --wl-ink3: #fff; --wl-ink4: #1b0b09; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wl-ink3: #fff; --wl-ink4: #1b0b09; } }
+.write-nav { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.write-count { font-size: .85rem; color: var(--muted); white-space: nowrap; }
+.sent-line { display: grid; gap: 6px; margin: 8px 0; }
+.sent-eq { font-size: 1.15rem; line-height: 1.5; }
+.sent-jp { font-size: 1.35rem; }
+.sent-sep { color: var(--muted); }
+.sent-th { font-weight: 600; }
+.sent-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.write-canvas { max-width: 100%; }
+.wl-legend { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin: 10px 0 4px; }
+.wl-chip { font-size: .72rem; padding: 2px 8px; border-radius: 6px; }
+.wl-table { width: 100%; border-collapse: separate; border-spacing: 4px; table-layout: fixed; }
+.wl-table caption { text-align: left; font-weight: 700; font-size: 1.05rem; padding: 0 4px 4px; }
+.wl-table th { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.wl-table th.rowhead { width: 26px; }
+.wl-table td { padding: 0; }
+.wl-cell {
+  width: 100%; min-height: 76px; display: grid; place-items: center; gap: 0; padding: 4px 2px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 12px; font: inherit; color: var(--text);
+}
+.wl-cell:hover, .wl-sent:hover { outline: 2px solid var(--primary); outline-offset: 1px; }
+.wl-char { font-size: 1.9rem; line-height: 1.1; }
+.wl-table.cols-3 .wl-char { font-size: 1.6rem; }
+.wl-rom { font-size: .68rem; opacity: .8; }
+.wl-n { font-size: .8rem; font-weight: 800; }
+.wl0 { background: var(--heat0); color: var(--muted); }
+.wl1 { background: var(--heat1); }
+.wl2 { background: var(--heat2); }
+.wl3 { background: var(--heat3); color: var(--wl-ink3); border-color: transparent; }
+.wl4 { background: var(--heat4); color: var(--wl-ink4); border-color: transparent; }
+.wl-group { font-size: 1rem; margin: 8px 0 6px; }
+.wl-sents { display: grid; gap: 6px; }
+.wl-sent { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; font: inherit; color: var(--text); cursor: pointer; }
+.wl-sent.wl0 { color: var(--text); }
+.wl-sent-text { flex: 1; min-width: 0; }
+.wl-sent-jp { font-size: 1.1rem; }
+.wl-sent-th { font-size: .88rem; }
+.wl-detail { display: grid; gap: 8px; text-align: center; }
+.wl-title { font-size: 4rem; line-height: 1.1; }
+.wl-title-sent { font-size: 1.4rem; }
+.wl-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.wl-stats > div { display: grid; background: var(--surface-2); border-radius: 10px; padding: 8px; }
+.wl-stats strong { font-size: 1.6rem; }
+.wl-h { font-size: .95rem; margin: 6px 0 0; text-align: left; }
+.wl-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.wl-gallery.sent { grid-template-columns: 1fr; }
+.wl-gallery p { grid-column: 1 / -1; }
+.wl-sample { margin: 0; display: grid; gap: 2px; }
+.wl-sample img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border); background: #fff; }
+.wl-sample figcaption { font-size: .72rem; color: var(--muted); }
+@media (max-width: 360px) { .wl-char { font-size: 1.5rem; } .wl-cell { min-height: 64px; } }
+@media (min-width: 700px) { .wl-cell { min-height: 92px; } .wl-char { font-size: 2.4rem; } }
+
 /* ---------- โหมดข้อมูลตัวอย่าง ---------- */
 .demo-banner { position: sticky; top: var(--topbar-h); z-index: 25; background: #2b4c7e; color: #fff; align-items: center; flex-wrap: wrap; }
 .demo-banner .btn { background: rgba(255,255,255,.18); color: #fff; }
