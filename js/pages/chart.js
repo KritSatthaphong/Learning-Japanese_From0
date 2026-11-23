@@ -22,23 +22,30 @@
     return index[group + '|' + row + '|' + col] || null;
   }
 
+  function romajiOn() { return NS.store.settings().chartRomaji !== false; }
+
   function showDetail(k, mode) {
     var scripts = mode === 'both' ? ['hira', 'kata'] : [mode];
+    var hidden = !romajiOn();
+    // ปิดคำใบ้อยู่: ซ่อนโรมันจิ + ทริคจำ (ทริคจำมีคำอ่านอยู่) ไว้หลังปุ่ม "ดูคำตอบ"
+    var answer = h('div', { class: 'detail-answer', hidden: hidden });
     var body = h('div', { class: 'detail' },
       h('div', { class: 'detail-chars' }, scripts.map(function (s) {
         return h('button', { class: 'detail-char', type: 'button', onclick: function () { NS.speech.speak(k[s]); }, 'aria-label': 'ฟัง ' + k[s] },
           NS.ui.jp(k[s]), h('small', { class: 'muted' }, s === 'hira' ? 'ひらがな' : 'カタカナ'));
       })),
-      h('div', { class: 'detail-romaji' }, NS.content.romajiLabel(k.romaji)),
-      scripts.map(function (s) {
-        var it = NS.content.kanaItem(k, s);
-        var tip = it.tip;
-        return tip ? h('p', { class: 'detail-tip' }, (scripts.length > 1 ? (s === 'hira' ? 'ひ: ' : 'カ: ') : '') + '💡 ' + tip) : null;
-      }),
-      k.note ? h('p', { class: 'detail-note' }, 'ℹ️ ' + k.note) : null,
+      answer,
+      hidden ? h('button', { class: 'btn btn-soft reveal-btn', type: 'button', onclick: function () { answer.hidden = false; this.remove(); } }, '👁 ดูคำตอบ (โรมันจิ + ทริคจำ)') : null,
       h('div', { class: 'row center' },
         NS.ui.speakBtn(k[scripts[0]], { label: '🔊 ฟัง' }),
         NS.ui.speakBtn(k[scripts[0]], { label: '🐢 ฟังช้า', rate: 0.5, cls: 'btn-ghost' })));
+    [h('div', { class: 'detail-romaji' }, NS.content.romajiLabel(k.romaji))].concat(
+      scripts.map(function (s) {
+        var tip = NS.content.kanaItem(k, s).tip;
+        return tip ? h('p', { class: 'detail-tip' }, (scripts.length > 1 ? (s === 'hira' ? 'ひ: ' : 'カ: ') : '') + '💡 ' + tip) : null;
+      }),
+      [k.note ? h('p', { class: 'detail-note' }, 'ℹ️ ' + k.note) : null]
+    ).forEach(function (el) { if (el) answer.appendChild(el); });
     NS.ui.modal({ title: 'ตัวอักษร', body: body });
     NS.speech.speak(k[scripts[0]]);
   }
@@ -55,7 +62,7 @@
     var rom = NS.content.romajiLabel(k.romaji) + (k.noQuiz ? '*' : '');
     return h('td', null, h('button', {
       class: 'cell' + (fade && !learnedAny ? ' unlearned' : ''), type: 'button',
-      'aria-label': scripts.map(function (s) { return k[s]; }).join(' ') + ' อ่านว่า ' + NS.content.romajiLabel(k.romaji),
+      'aria-label': scripts.map(function (s) { return k[s]; }).join(' ') + (romajiOn() ? ' อ่านว่า ' + NS.content.romajiLabel(k.romaji) : ''),
       onclick: function () { showDetail(k, mode); }
     }, h('span', { class: 'cell-chars' }, chars), h('span', { class: 'cell-romaji' }, rom)));
   }
@@ -78,6 +85,7 @@
 
     function render() {
       root.innerHTML = '';
+      root.classList.toggle('hide-romaji', !romajiOn());
       root.appendChild(h('div', { class: 'print-title' }, 'Nihongo Survival · ตารางตัวอักษรภาษาญี่ปุ่น'));
       root.appendChild(h('h1', { class: 'page-title no-print' }, 'ตารางตัวอักษร'));
       root.appendChild(h('div', { class: 'chart-tools no-print' },
@@ -87,6 +95,7 @@
           { value: 'both', label: 'คู่กัน' }
         ], mode, function (v) { mode = v; NS.store.setSetting('chartMode', v); render(); }, 'เลือกชุดตัวอักษร'),
         NS.ui.toggle('จางตัวที่ยังไม่เรียน', fade, function (v) { fade = v; NS.store.setSetting('chartFade', v); render(); }),
+        NS.ui.toggle('แสดงโรมันจิ (คำใบ้)', romajiOn(), function (v) { NS.store.setSetting('chartRomaji', v); render(); }, 'ปิดไว้เพื่อทดสอบตัวเองว่าอ่านออกไหม'),
         h('button', { class: 'btn btn-ghost', type: 'button', onclick: function () { window.print(); } }, '🖨 พิมพ์ตาราง')));
       root.appendChild(h('p', { class: 'muted small no-print' }, 'แตะที่ตัวอักษรเพื่อฟังเสียงและดูทริคจำ'));
 
