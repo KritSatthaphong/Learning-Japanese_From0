@@ -69,8 +69,8 @@ p { margin: 0 0 .5rem; }
 
 /* ---------- แถบบน / เมนู ---------- */
 .topbar {
-  position: sticky; top: 0; z-index: 30; height: var(--topbar-h);
-  display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 16px;
+  position: sticky; top: 0; z-index: 30; height: calc(var(--topbar-h) + env(safe-area-inset-top));
+  display: flex; align-items: center; justify-content: space-between; padding: env(safe-area-inset-top) 12px 0 16px;
   background: var(--surface); border-bottom: 1px solid var(--border);
 }
 .brand { color: var(--text); text-decoration: none; font-weight: 700; display: flex; gap: 8px; align-items: baseline; }
@@ -649,6 +649,20 @@ select.input { appearance: auto; }
 .chip.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
 .chip.mix { border-style: dashed; }
 .chip.mix.on { border-style: solid; }
+
+
+/* ---------- iPad / Apple Pencil: กันเลือกข้อความ + โหมดเต็มจอ ---------- */
+.page-write, .page-write * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.page-write select, .page-write input { -webkit-user-select: auto; user-select: auto; }
+.write-canvas { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+body.write-focus { overflow: hidden; overscroll-behavior: none; }
+body.write-focus .topbar, body.write-focus .tabbar { display: none; }
+body.write-focus main { max-width: none; padding: 12px 16px; height: 100vh; height: 100dvh; overflow: hidden; touch-action: none; }
+body.write-focus .page-write > .write-nav, body.write-focus .page-write > .page-title, body.write-focus .page-write > .write-switches,
+body.write-focus .page-write > .seg, body.write-focus .page-write > .write-tools, body.write-focus .page-write > .random-box,
+body.write-focus .page-write > .notice, body.write-focus .page-write > .write-foot, body.write-focus .page-write > .write-out { display: none; }
+body.write-focus .write-head, body.write-focus .sent-line { margin: 0 0 8px; }
+body.write-focus .write-btns { justify-content: center; margin-top: 10px; }
 
 /* ---------- โหมดข้อมูลตัวอย่าง ---------- */
 .demo-banner { position: sticky; top: var(--topbar-h); z-index: 25; background: #2b4c7e; color: #fff; align-items: center; flex-wrap: wrap; }

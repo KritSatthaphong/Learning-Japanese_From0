@@ -1,0 +1,17 @@
+{
+  "name": "Nihongo Survival",
+  "short_name": "Nihongo",
+  "description": "เว็บแอปเรียนภาษาญี่ปุ่นจากศูนย์ แบบเส้นทางเรียนมีไกด์",
+  "lang": "th",
+  "start_url": "./index.html#/home",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f4ef",
+  "theme_color": "#c8382f",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

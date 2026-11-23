@@ -206,9 +206,11 @@
     var sources = Array.isArray(st.writeSrc) && st.writeSrc.length ? st.writeSrc.slice() : ['hira'];
     var learnedOnly = st.writeLearnedOnly !== false;
     var autoCheck = st.writeAuto !== false;
+    var penOnly = !!st.writePen;          // รับเฉพาะ Apple Pencil (กันฝ่ามือ)
+    var focus = false;                    // โหมดเขียนเต็มจอ
     var current = null;   // รายการที่สุ่มได้ตอนนี้
     var timers = [];
-    NS.router.onLeave(function () { timers.forEach(clearTimeout); });
+    NS.router.onLeave(function () { timers.forEach(clearTimeout); document.body.classList.remove('write-focus'); });
 
     if (args[0] === 'char' && args[1]) {
       var loc = locateChar(decodeURIComponent(args[1]));
@@ -221,13 +223,15 @@
     function render() {
       timers.forEach(clearTimeout); timers = [];
       root.innerHTML = '';
+      document.body.classList.toggle('write-focus', focus);
       root.appendChild(h('div', { class: 'write-nav' },
         h('a', { href: '#/chart', class: 'back' }, '← ตารางตัวอักษร'),
         h('a', { href: '#/writelog', class: 'btn btn-ghost small' }, '📊 บันทึกการคัด')));
       root.appendChild(h('h1', { class: 'page-title' }, 'ฝึกเขียน (คัด)'));
       root.appendChild(h('div', { class: 'card write-switches' },
         NS.ui.toggle('🎲 โหมดสุ่ม', randomOn, function (v) { randomOn = v; NS.store.setSetting('writeRandom', v); current = null; render(); }, 'สุ่มตัวอักษรหรือประโยคขึ้นมาให้คัด'),
-        NS.ui.toggle('⚡ ตรวจอัตโนมัติ', autoCheck, function (v) { autoCheck = v; NS.store.setSetting('writeAuto', v); }, 'เขียนเสร็จแล้วยกมือค้างไว้ แอปจะตรวจเอง แล้วล้างกลับเป็นเส้นนำใน 1 วินาที')));
+        NS.ui.toggle('⚡ ตรวจอัตโนมัติ', autoCheck, function (v) { autoCheck = v; NS.store.setSetting('writeAuto', v); }, 'เขียนเสร็จแล้วยกมือค้างไว้ แอปจะตรวจเอง แล้วล้างกลับเป็นเส้นนำใน 1 วินาที'),
+        NS.ui.toggle('✏️ รับเฉพาะ Apple Pencil (กันฝ่ามือ)', penOnly, function (v) { penOnly = v; NS.store.setSetting('writePen', v); }, 'ช่องคัดไม่รับการแตะของนิ้ว/ฝ่ามือ · เปิดเองอัตโนมัติเมื่อเขียนด้วยปากกาครั้งแรก · ปิดถ้าจะเขียนด้วยนิ้ว')));
       if (randomOn) { renderRandom(); return; }
       root.appendChild(NS.ui.segmented([{ value: 'char', label: '✍️ คัดตัวอักษร' }, { value: 'sent', label: '📝 คัดประโยค' }], mode,
         function (v) { mode = v; render(); }, 'โหมดการคัด'));
@@ -252,8 +256,8 @@
           NS.ui.speakBtn(it.sound, { label: '🔊', cls: 'btn-soft small', aria: 'ฟังประโยค' })));
     }
     function sentLayout(it) {
-      var avail = Math.min(640, contentWidth(root));
-      return makeLayout(cellsOf(it.char), Math.max(4, Math.min(10, Math.floor(avail / 44))));
+      var avail = Math.min(focus ? 1100 : 640, contentWidth(root));
+      return makeLayout(cellsOf(it.char), Math.max(4, Math.min(10, Math.floor(avail / (focus ? 84 : 44)))));
     }
 
     /* ---------- โหมดสุ่ม ---------- */
@@ -349,7 +353,9 @@
     function board(L, o) {
       var single = L.cells.length === 1;
       var availW = contentWidth(root) - 4;
-      var cell = single ? Math.max(180, Math.min(320, availW)) : Math.min(64, Math.floor(availW / L.cols));
+      var cell = single
+        ? (focus ? Math.max(200, Math.min(availW, window.innerHeight - 230, 600)) : Math.max(180, Math.min(320, availW)))
+        : Math.min(focus ? 120 : 64, Math.floor(availW / L.cols));
       var W = L.cols * cell, H = L.rows * cell;
       var dpr = window.devicePixelRatio || 1;
       var strokes = [], counted = false, autoTimer = null, resetTimer = null;
@@ -417,18 +423,39 @@
         if (autoCheck) { resetTimer = setTimeout(resetBoard, 1000); timers.push(resetTimer); }
       }
 
-      var drawing = false;
+      /*
+       * กันฝ่ามือ: วาดได้ทีละ 1 จุดสัมผัส (activeId) · ถ้าเปิด "รับเฉพาะ Apple Pencil" จะไม่สนการแตะที่ไม่ใช่ปากกา
+       * เจอปากกาครั้งแรก → เปิดโหมดรับเฉพาะปากกาให้อัตโนมัติ
+       */
+      var drawing = false, activeId = null;
       function pt(e) { var r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; }
       cv.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        if (e.pointerType === 'pen' && !penOnly) {
+          penOnly = true; NS.store.setSetting('writePen', true);
+          NS.ui.toast('✏️ เจอ Apple Pencil — ช่องคัดจะไม่รับการแตะของนิ้ว/ฝ่ามือแล้ว');
+        }
+        if (penOnly && e.pointerType !== 'pen') return;   // ฝ่ามือ/นิ้ว
+        if (activeId !== null) return;                    // มีจุดที่กำลังเขียนอยู่แล้ว
+        activeId = e.pointerId;
         clearTimeout(autoTimer);
         if (resetTimer) resetBoard();            // เริ่มเขียนใหม่ระหว่างที่ยังโชว์คะแนน → ล้างก่อน
         drawing = true; counted = false;
         try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ }
-        strokes.push([pt(e)]); redraw(); e.preventDefault();
+        strokes.push([pt(e)]); redraw();
       });
-      cv.addEventListener('pointermove', function (e) { if (!drawing) return; strokes[strokes.length - 1].push(pt(e)); redraw(); e.preventDefault(); });
+      cv.addEventListener('pointermove', function (e) {
+        if (!drawing || e.pointerId !== activeId) return;
+        var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];   // เส้นเนียนขึ้นเมื่อเขียนเร็ว
+        (evs.length ? evs : [e]).forEach(function (ce) { strokes[strokes.length - 1].push(pt(ce)); });
+        redraw(); e.preventDefault();
+      });
+      // กัน Safari เลือกข้อความ / แว่นขยาย / เลื่อนหน้า เมื่อแตะที่ช่องคัด
+      ['touchstart', 'touchmove', 'touchend'].forEach(function (ev) { cv.addEventListener(ev, function (e) { e.preventDefault(); }, { passive: false }); });
       ['pointerup', 'pointercancel'].forEach(function (ev) {
-        cv.addEventListener(ev, function () {
+        cv.addEventListener(ev, function (e) {
+          if (e.pointerId !== activeId) return;
+          activeId = null;
           if (!drawing) return;
           drawing = false;
           if (autoCheck) { clearTimeout(autoTimer); autoTimer = setTimeout(check, single ? 1200 : 2000); timers.push(autoTimer); }
@@ -448,8 +475,9 @@
         h('button', { class: 'btn btn-primary', type: 'button', onclick: check }, '✓ ตรวจ'),
         h('button', { class: 'btn btn-soft', type: 'button', onclick: function () { clearTimeout(autoTimer); resetBoard(); out.innerHTML = ''; } }, '🧽 ล้าง'),
         guideBtn, hintBtn,
+        h('button', { class: 'btn btn-soft', type: 'button', onclick: function () { focus = !focus; render(); } }, focus ? '✕ ออกจากเต็มจอ' : '⛶ เขียนเต็มจอ'),
         h('button', { class: 'btn ' + (randomOn ? 'btn-primary' : 'btn-soft'), type: 'button', onclick: o.onNext }, o.nextLabel)));
-      root.appendChild(h('p', { class: 'muted small' }, 'คะแนนความใกล้เคียง = % ที่ทับเส้นนำ × (100% − % ที่ออกนอกเส้น) · เส้นนำมาจากฟอนต์ของเครื่อง จึงหน้าตาต่างกันได้เล็กน้อย · ยังไม่มีการแสดงลำดับขีด'));
+      root.appendChild(h('p', { class: 'muted small write-foot' }, 'คะแนนความใกล้เคียง = % ที่ทับเส้นนำ × (100% − % ที่ออกนอกเส้น) · เส้นนำมาจากฟอนต์ของเครื่อง จึงหน้าตาต่างกันได้เล็กน้อย · ยังไม่มีการแสดงลำดับขีด'));
       redraw();
     }
 
