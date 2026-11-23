@@ -226,7 +226,9 @@
       document.body.classList.toggle('write-focus', focus);
       root.appendChild(h('div', { class: 'write-nav' },
         h('a', { href: '#/chart', class: 'back' }, '← ตารางตัวอักษร'),
-        h('a', { href: '#/writelog', class: 'btn btn-ghost small' }, '📊 บันทึกการคัด')));
+        h('span', { class: 'row' },
+          h('a', { href: '#/writegallery', class: 'btn btn-ghost small' }, '🖼 ลายมือ'),
+          h('a', { href: '#/writelog', class: 'btn btn-ghost small' }, '📊 บันทึกการคัด'))));
       root.appendChild(h('h1', { class: 'page-title' }, 'ฝึกเขียน (คัด)'));
       root.appendChild(h('div', { class: 'card write-switches' },
         NS.ui.toggle('🎲 โหมดสุ่ม', randomOn, function (v) { randomOn = v; NS.store.setSetting('writeRandom', v); current = null; render(); }, 'สุ่มตัวอักษรหรือประโยคขึ้นมาให้คัด'),
@@ -295,7 +297,7 @@
         board(makeLayout([it.char], 1), { onScore: function (r, img) { NS.writeLog.recordChar(it.char, r.score, img); }, nextLabel: '🎲 สุ่มต่อ', onNext: next });
       } else {
         root.appendChild(sentHead(it));
-        board(sentLayout(it), { onScore: function (r, img) { NS.writeLog.recordSentence(it.id, it.char, r.score, img); }, nextLabel: '🎲 สุ่มต่อ', onNext: next });
+        board(sentLayout(it), { onScore: function (r, img) { NS.writeLog.recordSentence(it.id, it.char, r.score, img, it.th); }, nextLabel: '🎲 สุ่มต่อ', onNext: next });
       }
     }
 
@@ -343,7 +345,7 @@
       root.appendChild(h('div', { class: 'write-tools' }, sel));
       root.appendChild(sentHead(it));
       board(sentLayout(it), {
-        onScore: function (r, img) { NS.writeLog.recordSentence(it.id, it.char, r.score, img); },
+        onScore: function (r, img) { NS.writeLog.recordSentence(it.id, it.char, r.score, img, it.th); },
         nextLabel: 'ประโยคถัดไป ▶',
         onNext: function () { sentId = (all[i + 1] || all[0]).id; render(); }
       });

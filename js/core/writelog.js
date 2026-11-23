@@ -3,13 +3,19 @@
  * ------------------------------------------------------------
  * นับว่าคัดตัวอักษร/ประโยคไหนไปกี่ครั้ง และคะแนนดีที่สุด (ไม่เก็บวันที่)
  *   จำนวนครั้ง/คะแนน  → localStorage (state.writeLog)
- *   ภาพลายมือ 6 ครั้งล่าสุด → IndexedDB (ฐานข้อมูล nihongo-writing) ครอบ try/catch
+ *   ภาพลายมือทุกครั้ง     → IndexedDB (ฐานข้อมูล nihongo-writing) ครอบ try/catch
  * นับเฉพาะการคัดจริงที่กด "✓ ตรวจ" ในหน้าฝึกเขียน
  */
 (function () {
   'use strict';
   var NS = window.NS = window.NS || {};
-  var DB_NAME = 'nihongo-writing', STORE = 'samples', KEEP = 6;
+  /*
+   * IndexedDB 'nihongo-writing'
+   *   v1: store 'samples' — เก็บ 6 ภาพล่าสุดต่อ key (เลิกใช้แล้ว)
+   *   v2: store 'all'     — เก็บทุกภาพ 1 แถวต่อ 1 ครั้ง { kind, key, label, th, img, score } (id เพิ่มอัตโนมัติ = ลำดับ)
+   *       ตอนอัปเกรดจะย้ายภาพจาก 'samples' มาไว้ที่ 'all' ให้
+   */
+  var DB_NAME = 'nihongo-writing', STORE = 'all';
   var dbPromise = null;
 
   function openDB() {
@@ -17,8 +23,23 @@
     dbPromise = new Promise(function (resolve) {
       try {
         if (!window.indexedDB) { resolve(null); return; }
-        var req = indexedDB.open(DB_NAME, 1);
-        req.onupgradeneeded = function () { req.result.createObjectStore(STORE); };
+        var req = indexedDB.open(DB_NAME, 2);
+        req.onupgradeneeded = function (e) {
+          var db = req.result, tx = req.transaction;
+          var all = db.objectStoreNames.contains(STORE) ? tx.objectStore(STORE) : db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+          if (e.oldVersion >= 1 && db.objectStoreNames.contains('samples')) {
+            var old = tx.objectStore('samples');
+            old.openCursor().onsuccess = function (ev) {
+              var cur = ev.target.result;
+              if (!cur) { try { db.deleteObjectStore('samples'); } catch (x) { /* ignore */ } return; }
+              var key = String(cur.key), list = (cur.value || []).slice().reverse();   // เก่าก่อน
+              list.forEach(function (sm) {
+                all.add({ kind: key.indexOf('s:') === 0 ? 'sent' : 'char', key: key.slice(2), label: '', img: sm.img, score: sm.score });
+              });
+              cur.continue();
+            };
+          }
+        };
         req.onsuccess = function () { resolve(req.result); };
         req.onerror = function () { resolve(null); };
       } catch (e) { resolve(null); }
@@ -26,26 +47,34 @@
     return dbPromise;
   }
 
-  function getSamples(key) {
+  /* อ่านทุกแถว (ใหม่สุดก่อน) กรองด้วย fn */
+  function readAll(fn) {
     return openDB().then(function (db) {
       if (!db) return [];
       return new Promise(function (resolve) {
+        var out = [];
         try {
-          var req = db.transaction(STORE, 'readonly').objectStore(STORE).get(key);
-          req.onsuccess = function () { resolve(req.result || []); };
-          req.onerror = function () { resolve([]); };
-        } catch (e) { resolve([]); }
+          var req = db.transaction(STORE, 'readonly').objectStore(STORE).openCursor(null, 'prev');
+          req.onsuccess = function () {
+            var cur = req.result;
+            if (!cur) { resolve(out); return; }
+            if (!fn || fn(cur.value)) out.push(cur.value);
+            cur.continue();
+          };
+          req.onerror = function () { resolve(out); };
+        } catch (e) { resolve(out); }
       });
     });
   }
 
-  function addSample(key, sample) {
-    return getSamples(key).then(function (list) {
-      list = [sample].concat(list).slice(0, KEEP);
-      return openDB().then(function (db) {
-        if (!db) return;
-        try { db.transaction(STORE, 'readwrite').objectStore(STORE).put(list, key); } catch (e) { /* ignore */ }
-      });
+  function addSample(rec) {
+    return openDB().then(function (db) {
+      if (!db) return;
+      try {
+        var tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).add(rec);
+        tx.onerror = function () { if (NS.ui) NS.ui.toast('เก็บภาพลายมือไม่ได้ (พื้นที่ในเครื่องอาจเต็ม)'); };
+      } catch (e) { /* ignore */ }
     });
   }
 
@@ -74,17 +103,15 @@
   }
 
   NS.writeLog = {
-    KEEP: KEEP,
-
     /* บันทึกการคัดตัวอักษร 1 ครั้ง */
     recordChar: function (ch, score, img) {
       bump(log().chars, ch, score);
       NS.store.save();
-      if (img) addSample('c:' + ch, { img: img, score: score });
+      if (img) addSample({ kind: 'char', key: ch, label: ch, img: img, score: score });
     },
 
     /* บันทึกการคัดประโยค 1 ครั้ง (นับตัวอักษรแต่ละตัวในประโยคเข้าตารางด้วย) */
-    recordSentence: function (id, text, score, img) {
+    recordSentence: function (id, text, score, img, th) {
       var L = log();
       bump(L.sents, id, score);
       var chars = Array.from(text);
@@ -94,13 +121,24 @@
         if (/[ゃゅょャュョ]$/.test(pair) && inTable(pair)) bump(L.chars, pair, null);
       });
       NS.store.save();
-      if (img) addSample('s:' + id, { img: img, score: score });
+      if (img) addSample({ kind: 'sent', key: id, label: text, th: th || '', img: img, score: score });
     },
 
     charCount: function (ch) { var r = log().chars[ch]; return r ? r.n : 0; },
     charRec: function (ch) { return log().chars[ch] || { n: 0, best: 0 }; },
     sentRec: function (id) { return log().sents[id] || { n: 0, best: 0 }; },
-    samples: function (kind, key) { return getSamples((kind === 'sent' ? 's:' : 'c:') + key); },
+
+    /* ภาพลายมือทั้งหมดของตัว/ประโยคนี้ (ใหม่สุดก่อน) */
+    samples: function (kind, key) { return readAll(function (r) { return r.kind === kind && r.key === key; }); },
+    /* ภาพลายมือทั้งหมด (ใหม่สุดก่อน) */
+    allSamples: function () { return readAll(null); },
+
+    removeSample: function (id) {
+      return openDB().then(function (db) {
+        if (!db) return;
+        try { db.transaction(STORE, 'readwrite').objectStore(STORE).delete(id); } catch (e) { /* ignore */ }
+      });
+    },
 
     totals: function () {
       var L = log(), cn = 0, cu = 0, sn = 0, su = 0;

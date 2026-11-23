@@ -1,7 +1,7 @@
 /*
  * writelog.js — ตารางบันทึกการคัด
  * ตารางใหญ่ของตัวอักษรทุกตัว แต่ละช่องบอกว่าคัดไปแล้วกี่ครั้ง (ยิ่งคัดมาก สียิ่งเข้ม)
- * กดที่ช่องเพื่อดูภาพลายมือที่เคยคัด · มีแท็บประโยค "ภาษาญี่ปุ่น = คำแปลไทย" ด้วย
+ * กดที่ช่องเพื่อดูภาพลายมือทุกครั้งที่เคยคัด (ดูรวมทุกภาพได้ที่หน้า "ลายมือทั้งหมด") · มีแท็บประโยค "ภาษาญี่ปุ่น = คำแปลไทย" ด้วย
  * (ไม่แสดงวันที่ นับจำนวนครั้งอย่างเดียว)
  */
 (function () {
@@ -29,16 +29,18 @@
   function showDetail(kind, key, title, sub, href) {
     var rec = kind === 'sent' ? NS.writeLog.sentRec(key) : NS.writeLog.charRec(key);
     var gallery = h('div', { class: 'wl-gallery' + (kind === 'sent' ? ' sent' : '') }, h('span', { class: 'muted small' }, 'กำลังโหลดภาพลายมือ…'));
+    var galleryTitle = h('h3', { class: 'wl-h' }, 'ลายมือทั้งหมด');
     NS.writeLog.samples(kind, key).then(function (list) {
       gallery.innerHTML = '';
+      galleryTitle.textContent = 'ลายมือทั้งหมด (' + list.length + ' ภาพ · ใหม่สุดก่อน · เลื่อนดูได้)';
       if (!list.length) {
         gallery.appendChild(h('p', { class: 'muted small' }, rec.n ? 'ไม่มีภาพลายมือที่เก็บไว้ในเครื่องนี้' : 'ยังไม่เคยคัด'));
         return;
       }
       list.forEach(function (s, i) {
         gallery.appendChild(h('figure', { class: 'wl-sample' },
-          h('img', { src: s.img, alt: 'ลายมือครั้งที่ ' + (i + 1) + ' (ล่าสุดก่อน)' }),
-          s.score != null ? h('figcaption', null, s.score + ' คะแนน') : null));
+          h('img', { src: s.img, alt: 'ลายมือครั้งที่ ' + (list.length - i), loading: 'lazy' }),
+          h('figcaption', null, 'ครั้งที่ ' + (list.length - i) + (s.score != null ? ' · ' + s.score : ''))));
       });
     });
     NS.ui.modal({
@@ -49,7 +51,7 @@
         h('div', { class: 'wl-stats' },
           h('div', null, h('strong', null, String(rec.n)), h('small', { class: 'muted' }, 'ครั้งที่คัด')),
           h('div', null, h('strong', null, rec.best ? String(rec.best) : '–'), h('small', { class: 'muted' }, 'คะแนนดีที่สุด'))),
-        h('h3', { class: 'wl-h' }, 'ลายมือล่าสุด (สูงสุด ' + NS.writeLog.KEEP + ' ครั้ง)'),
+        galleryTitle,
         gallery),
       actions: [
         { label: 'ปิด', cls: 'btn-soft' },
@@ -66,7 +68,9 @@
       root.innerHTML = '';
       root.appendChild(h('div', { class: 'write-nav' },
         h('a', { href: '#/chart', class: 'back' }, '← ตารางตัวอักษร'),
-        h('a', { href: '#/write', class: 'btn btn-primary small' }, '✍️ ไปคัด')));
+        h('span', { class: 'row' },
+          h('a', { href: '#/writegallery', class: 'btn btn-soft small' }, '🖼 ลายมือทั้งหมด'),
+          h('a', { href: '#/write', class: 'btn btn-primary small' }, '✍️ ไปคัด'))));
       root.appendChild(h('h1', { class: 'page-title' }, 'บันทึกการคัด'));
       root.appendChild(h('div', { class: 'tiles tiles-4' },
         tile('คัดตัวอักษร', T.charWrites + ' ครั้ง'),
