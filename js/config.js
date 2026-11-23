@@ -3,7 +3,7 @@
  * ------------------------------------------------------------
  * ใส่ค่าจาก Supabase → Project Settings → API
  *   SUPABASE_URL      : Project URL เช่น https://abcdxyz.supabase.co
- *   SUPABASE_ANON_KEY : anon / publishable key (คีย์สาธารณะ ใส่ในเว็บได้ ปลอดภัยเพราะตารางเปิด RLS ไว้)
+ *   SUPABASE_ANON_KEY : publishable key (sb_publishable_...) หรือ anon key — คีย์สาธารณะ ใส่ในเว็บได้ ปลอดภัยเพราะตารางเปิด RLS ไว้
  *
  * ⚠️ ห้ามใส่ service_role / secret key ที่นี่เด็ดขาด (คีย์นั้นข้ามสิทธิ์ RLS ได้ทั้งหมด)
  * ถ้าเว้นว่างไว้ แอปจะทำงานแบบเดิม (เก็บในเครื่องอย่างเดียว ไม่มีระบบบัญชี)
@@ -11,6 +11,6 @@
 window.NS = window.NS || {};
 
 NS.CONFIG = {
-  SUPABASE_URL: '',
-  SUPABASE_ANON_KEY: ''
+  SUPABASE_URL: 'https://iybdqkdvrymmtfdvgdwc.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_4Hx6fr3MnmIAM-hHVceBdA_ZPkUSrsQ'   // publishable key (คีย์สาธารณะ)
 };
