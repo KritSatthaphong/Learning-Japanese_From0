@@ -2,7 +2,7 @@
  * demo.js — โหมด "ข้อมูลตัวอย่าง" สำหรับสาธิตว่าแอปทำงานอย่างไรเมื่อใช้ไปนานๆ
  * ------------------------------------------------------------
  * - สร้างข้อมูลสมมติ: เรียนทุกวันตั้งแต่ 20 ส.ค. 2026 ถึง 10 พ.ย. 2026 (XP คละกัน) และผ่านทุกด่าน
- *   พร้อมข้อมูลของทุกฟีเจอร์: SRS ครบ 5 กล่อง, สมุดคำผิด, เด็คของฉัน, ประวัติฝึกพูด, Pre/Post Test,
+ *   พร้อมข้อมูลของทุกฟีเจอร์: SRS 271 รายการ ครบ 5 กล่อง (น้อย → มาก), สมุดคำผิด, เด็คของฉัน, ประวัติฝึกพูด, Pre/Post Test,
  *   คะแนนเกม, บันทึกการคัด และภาพลายมือตัวอย่าง (ติดป้าย demo แยกจากภาพจริง)
  * - ข้อมูลจริงจะถูกสำรองไว้ก่อน แล้วคืนให้เมื่อกด "ออกจากโหมดตัวอย่าง"
  * - ระหว่างใช้โหมดนี้ แอปจะแสดงแถบ "ข้อมูลตัวอย่าง" ตลอดเวลา (ปิดไม่ได้)
@@ -76,17 +76,27 @@
       correct += c; answered += a;
     });
 
-    // ทบทวนตามรอบ: ทุกสิ่งที่เรียนแล้ว กระจายครบทั้ง 5 กล่อง (1 / 2 / 4 / 7 / 14 วัน) มีบางส่วนถึงรอบวันนี้
+    // ทบทวนตามรอบ: รวม 271 รายการ (รวมวลีในเด็คของฉัน 8 วลี) เรียงจากน้อยไปมาก
+    //   กล่อง 1 (ทุก 1 วัน) 20 · กล่อง 2 (2 วัน) 35 · กล่อง 3 (4 วัน) 55 · กล่อง 4 (7 วัน) 71 · กล่อง 5 (14 วัน) 90
     var IV = NS.srs.INTERVALS, srs = {};
-    var ids = Object.keys(learned).filter(function (id) { var it = NS.content.itemById(id); return it && it.quiz !== false; });
-    ids.forEach(function (id, i) {
-      var r = rand();
-      var box = r < 0.15 ? 1 : r < 0.33 ? 2 : r < 0.53 ? 3 : r < 0.75 ? 4 : 5;
-      var due = rand() < 0.07 ? today : plus(today, 1 + Math.floor(rand() * IV[box - 1]));
-      srs[id] = { box: box, due: due };
+    var BOX_TOTAL = [20, 35, 55, 71, 90], DECK_N = 8;
+    var deckBoxes = [];
+    for (var db = 0; db < DECK_N; db++) deckBoxes.push(1 + (db % 5));
+    var quota = BOX_TOTAL.map(function (n, i) { return n - deckBoxes.filter(function (b) { return b === i + 1; }).length; });
+    var pool = Object.keys(learned).filter(function (id) { var it = NS.content.itemById(id); return it && it.quiz !== false; });
+    // สุ่มลำดับ (seed คงที่) แล้วเลือกมาเท่าที่ต้องใช้
+    for (var sh = pool.length - 1; sh > 0; sh--) { var sj = Math.floor(rand() * (sh + 1)); var st = pool[sh]; pool[sh] = pool[sj]; pool[sj] = st; }
+    var ids = [], keep = {};
+    quota.forEach(function (n, bi) {
+      for (var q = 0; q < n && pool.length; q++) {
+        var id = pool.shift(), box = bi + 1;
+        var todayChance = box === 1 ? 0.5 : box === 2 ? 0.3 : 0.04;
+        srs[id] = { box: box, due: rand() < todayChance ? today : plus(today, 1 + Math.floor(rand() * IV[box - 1])) };
+        ids.push(id); keep[id] = learned[id];
+      }
     });
-    // ให้แน่ใจว่าทุกกล่องมีรายการ และมีรายการที่ถึงรอบวันนี้
-    [1, 2, 3, 4, 5].forEach(function (b, i) { if (ids[i]) srs[ids[i]] = { box: b, due: i < 3 ? today : plus(today, IV[b - 1]) }; });
+    // สิ่งที่ "เรียนแล้ว" = เฉพาะที่อยู่ในระบบทบทวน (ไม่อย่างนั้นระบบจะดึงที่เหลือเข้า SRS เพิ่มเองอัตโนมัติ)
+    learned = keep;
 
     // สมุดคำผิด + จำนวนครั้งที่ผิดสะสม
     var missTally = {}, mistakes = {};
@@ -111,7 +121,8 @@
     var deck = deckSrc.map(function (d, i) {
       var created = dayKey(10 + i * 9);
       var id = 'd-demo-' + (i + 1);
-      srs[id] = { box: 1 + (i % 5), due: i % 3 === 0 ? today : plus(today, 1 + (i % 5)) };
+      var dbx = deckBoxes[i];
+      srs[id] = { box: dbx, due: dbx <= 2 && i % 2 === 0 ? today : plus(today, 1 + Math.floor(rand() * IV[dbx - 1])) };
       return { id: id, jp: d[0], romaji: d[1], th: d[2], source: d[3], created: created };
     });
 
