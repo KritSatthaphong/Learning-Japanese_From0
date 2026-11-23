@@ -6,7 +6,8 @@
  *   ประโยค   : คัดประโยค "ภาษาญี่ปุ่น = คำแปลไทย" ลงช่องตารางทีละตัว (แบบกระดาษคัดญี่ปุ่น)
  * แสดงตัวอักษรจางๆ เป็นเส้นนำ (วาดจากฟอนต์ของเครื่อง) ให้คะแนนจาก
  *   % ที่ทับเส้นนำ × (100% − % ที่ออกนอกเส้น)
- * ทุกครั้งที่กด "✓ ตรวจ" จะบันทึกลง "บันทึกการคัด" (นับครั้ง + เก็บภาพลายมือล่าสุด)
+ * ทุกครั้งที่ตรวจ (กดเอง หรือตรวจอัตโนมัติเมื่อเขียนเสร็จ) จะบันทึกลง "บันทึกการคัด"
+ * โหมดสุ่ม: สุ่มจาก ひらがな / カタカナ / ประโยคฮิรางานะ หรือ Mix (ตัวที่คัดน้อยออกบ่อยกว่า)
  * หมายเหตุ: ยังไม่แสดงลำดับขีด (ข้อมูล KanjiVG)
  *
  * ลิงก์ตรง: #/write/char/あ  หรือ  #/write/sent/<id ประโยค>
@@ -155,24 +156,143 @@
     return out;
   }
 
+  /* ---------- โหมดสุ่ม ---------- */
+  var SOURCES = [
+    { value: 'hira', label: 'ひらがな' },
+    { value: 'kata', label: 'カタカナ' },
+    { value: 'sent', label: 'ประโยค ひらがな' }
+  ];
+
+  /* รายการที่สุ่มได้ ตามแหล่งที่เลือก */
+  function randomPool(src, learnedOnly) {
+    var pool = [], st = NS.store.get();
+    ['hira', 'kata'].forEach(function (script) {
+      if (src.indexOf(script) < 0) return;
+      NS.KANA.forEach(function (k) {
+        if (k.noQuiz) return;
+        if (learnedOnly && !NS.progress.isKanaLearned(k, script)) return;
+        var it = NS.content.kanaItem(k, script);
+        pool.push({ type: 'char', key: it.char, item: it });
+      });
+    });
+    if (src.indexOf('sent') >= 0) {
+      sentenceGroups().forEach(function (g) {
+        g.items.forEach(function (it) {
+          if (!/^[ぁ-ゟ、。\s]+$/.test(it.char)) return;               // ฮิรางานะล้วน
+          if (learnedOnly && !(st.learned[it.id] || (it.level && NS.progress.isPassed(it.level)))) return;
+          pool.push({ type: 'sent', key: it.id, item: it });
+        });
+      });
+    }
+    return pool;
+  }
+
+  /* สุ่มแบบถ่วงน้ำหนัก: ตัวที่คัดน้อยมีโอกาสออกมากกว่า และไม่ซ้ำตัวล่าสุด */
+  function pickRandom(pool, lastKey) {
+    var cand = pool.length > 1 ? pool.filter(function (x) { return x.key !== lastKey; }) : pool;
+    var weights = cand.map(function (x) {
+      var n = x.type === 'char' ? NS.writeLog.charCount(x.key) : NS.writeLog.sentRec(x.key).n;
+      return 1 / (1 + n);
+    });
+    var sum = weights.reduce(function (a, b) { return a + b; }, 0), r = Math.random() * sum;
+    for (var i = 0; i < cand.length; i++) { r -= weights[i]; if (r <= 0) return cand[i]; }
+    return cand[cand.length - 1];
+  }
+
   NS.pages.write = function (root, args) {
+    var st = NS.store.settings();
     var mode = 'char', script = 'hira', levelId = null, idx = 0, sentId = null, showGuide = true, showHint = true;
+    var randomOn = !!st.writeRandom;
+    var sources = Array.isArray(st.writeSrc) && st.writeSrc.length ? st.writeSrc.slice() : ['hira'];
+    var learnedOnly = st.writeLearnedOnly !== false;
+    var autoCheck = st.writeAuto !== false;
+    var current = null;   // รายการที่สุ่มได้ตอนนี้
+    var timers = [];
+    NS.router.onLeave(function () { timers.forEach(clearTimeout); });
+
     if (args[0] === 'char' && args[1]) {
       var loc = locateChar(decodeURIComponent(args[1]));
       if (loc) { script = loc.script; levelId = loc.level; idx = loc.idx; }
+      randomOn = false;
     } else if (args[0] === 'sent' && args[1]) {
-      mode = 'sent'; sentId = decodeURIComponent(args[1]);
+      mode = 'sent'; sentId = decodeURIComponent(args[1]); randomOn = false;
     }
 
     function render() {
+      timers.forEach(clearTimeout); timers = [];
       root.innerHTML = '';
       root.appendChild(h('div', { class: 'write-nav' },
         h('a', { href: '#/chart', class: 'back' }, '← ตารางตัวอักษร'),
         h('a', { href: '#/writelog', class: 'btn btn-ghost small' }, '📊 บันทึกการคัด')));
       root.appendChild(h('h1', { class: 'page-title' }, 'ฝึกเขียน (คัด)'));
+      root.appendChild(h('div', { class: 'card write-switches' },
+        NS.ui.toggle('🎲 โหมดสุ่ม', randomOn, function (v) { randomOn = v; NS.store.setSetting('writeRandom', v); current = null; render(); }, 'สุ่มตัวอักษรหรือประโยคขึ้นมาให้คัด'),
+        NS.ui.toggle('⚡ ตรวจอัตโนมัติ', autoCheck, function (v) { autoCheck = v; NS.store.setSetting('writeAuto', v); }, 'เขียนเสร็จแล้วยกมือค้างไว้ แอปจะตรวจเอง แล้วล้างกลับเป็นเส้นนำใน 1 วินาที')));
+      if (randomOn) { renderRandom(); return; }
       root.appendChild(NS.ui.segmented([{ value: 'char', label: '✍️ คัดตัวอักษร' }, { value: 'sent', label: '📝 คัดประโยค' }], mode,
         function (v) { mode = v; render(); }, 'โหมดการคัด'));
       if (mode === 'char') renderChar(); else renderSent();
+    }
+
+    /* ---------- หัวข้อของตัวอักษร / ประโยค ---------- */
+    function charHead(it) {
+      var rec = NS.writeLog.charRec(it.char);
+      return h('div', { class: 'write-head' },
+        NS.ui.jp(it.char, 'write-char'), h('span', { class: 'write-romaji' }, it.label),
+        h('span', { class: 'write-count' }, 'คัดแล้ว ' + rec.n + ' ครั้ง'),
+        NS.ui.speakBtn(it.sound, { label: '🔊', cls: 'btn-soft small', aria: 'ฟังเสียง' }));
+    }
+    function sentHead(it) {
+      var rec = NS.writeLog.sentRec(it.id);
+      return h('div', { class: 'sent-line card' },
+        h('div', { class: 'sent-eq' }, NS.ui.jp(it.char, 'sent-jp'), h('span', { class: 'sent-sep' }, ' = '), h('span', { class: 'sent-th' }, it.th)),
+        h('div', { class: 'sent-meta' },
+          it.label ? h('span', { class: 'phrase-romaji' }, it.label) : null,
+          h('span', { class: 'write-count' }, 'คัดแล้ว ' + rec.n + ' ครั้ง'),
+          NS.ui.speakBtn(it.sound, { label: '🔊', cls: 'btn-soft small', aria: 'ฟังประโยค' })));
+    }
+    function sentLayout(it) {
+      var avail = Math.min(640, contentWidth(root));
+      return makeLayout(cellsOf(it.char), Math.max(4, Math.min(10, Math.floor(avail / 44))));
+    }
+
+    /* ---------- โหมดสุ่ม ---------- */
+    function renderRandom() {
+      var all = sources.length === SOURCES.length;
+      var chips = h('div', { class: 'chips', role: 'group', 'aria-label': 'เลือกสิ่งที่จะสุ่ม' },
+        SOURCES.map(function (s) {
+          var on = sources.indexOf(s.value) >= 0;
+          return h('button', { class: 'chip' + (on ? ' on' : ''), type: 'button', 'aria-pressed': String(on), onclick: function () {
+            if (on && sources.length === 1) { NS.ui.toast('เลือกอย่างน้อย 1 อย่าง'); return; }
+            sources = on ? sources.filter(function (x) { return x !== s.value; }) : sources.concat([s.value]);
+            NS.store.setSetting('writeSrc', sources); current = null; render();
+          } }, (on ? '✓ ' : '') + s.label);
+        }),
+        h('button', { class: 'chip mix' + (all ? ' on' : ''), type: 'button', 'aria-pressed': String(all), onclick: function () {
+          sources = SOURCES.map(function (s) { return s.value; });
+          NS.store.setSetting('writeSrc', sources); current = null; render();
+        } }, '🔀 Mix (ทั้งหมด)'));
+
+      var pool = randomPool(sources, learnedOnly), note = null;
+      if (!pool.length && learnedOnly) { pool = randomPool(sources, false); note = 'ยังไม่มีสิ่งที่เรียนแล้วในหมวดที่เลือก เลยสุ่มจากทั้งหมดให้ก่อน'; }
+      if (!current || !pool.some(function (x) { return x.key === current.key; })) current = pickRandom(pool, current && current.key);
+
+      root.appendChild(h('section', { class: 'card random-box' },
+        h('div', { class: 'random-title' }, '🎲 สุ่มจาก'),
+        chips,
+        NS.ui.toggle('เฉพาะที่เรียนแล้ว', learnedOnly, function (v) { learnedOnly = v; NS.store.setSetting('writeLearnedOnly', v); current = null; render(); }),
+        h('small', { class: 'muted' }, 'สุ่มจาก ' + pool.length + ' รายการ · ตัวที่คัดน้อยจะออกบ่อยกว่า'),
+        note ? h('p', { class: 'notice small' }, note) : null));
+
+      var it = current.item;
+      var next = function () { current = pickRandom(pool, current.key); render(); };
+      if (current.type === 'char') {
+        root.appendChild(charHead(it));
+        board(makeLayout([it.char], 1), { onScore: function (r, img) { NS.writeLog.recordChar(it.char, r.score, img); }, nextLabel: '🎲 สุ่มต่อ', onNext: next });
+      } else {
+        root.appendChild(sentHead(it));
+        board(sentLayout(it), { onScore: function (r, img) { NS.writeLog.recordSentence(it.id, it.char, r.score, img); }, nextLabel: '🎲 สุ่มต่อ', onNext: next });
+      }
     }
 
     /* ---------- โหมดตัวอักษร ---------- */
@@ -194,13 +314,7 @@
         NS.ui.segmented([{ value: 'hira', label: 'ひらがな' }, { value: 'kata', label: 'カタカナ' }], script, function (v) { script = v; levelId = null; idx = 0; render(); }, 'ชุดตัวอักษร'),
         sel));
       if (fallback) root.appendChild(h('p', { class: 'notice small' }, 'ยังไม่ได้เรียนด่านไหน แสดงชุดแรกให้ลองก่อน'));
-
-      var rec = NS.writeLog.charRec(it.char);
-      root.appendChild(h('div', { class: 'write-head' },
-        NS.ui.jp(it.char, 'write-char'), h('span', { class: 'write-romaji' }, it.label),
-        h('span', { class: 'write-count' }, 'คัดแล้ว ' + rec.n + ' ครั้ง'),
-        NS.ui.speakBtn(it.sound, { label: '🔊', cls: 'btn-soft small', aria: 'ฟังเสียง' })));
-
+      root.appendChild(charHead(it));
       board(makeLayout([it.char], 1), {
         onScore: function (r, img) { NS.writeLog.recordChar(it.char, r.score, img); },
         nextLabel: 'ตัวถัดไป ▶ (' + (idx + 1) + '/' + cur.items.length + ')',
@@ -215,7 +329,6 @@
       var it = all.find(function (x) { return x.id === sentId; }) || all[0];
       sentId = it.id;
       var i = all.indexOf(it);
-
       var sel = h('select', { class: 'input', 'aria-label': 'เลือกประโยค' }, groups.map(function (g) {
         return h('optgroup', { label: g.label }, g.items.map(function (x) {
           var n = NS.writeLog.sentRec(x.id).n;
@@ -224,18 +337,8 @@
       }));
       sel.addEventListener('change', function () { sentId = sel.value; render(); });
       root.appendChild(h('div', { class: 'write-tools' }, sel));
-
-      var rec = NS.writeLog.sentRec(it.id);
-      root.appendChild(h('div', { class: 'sent-line card' },
-        h('div', { class: 'sent-eq' }, NS.ui.jp(it.char, 'sent-jp'), h('span', { class: 'sent-sep' }, ' = '), h('span', { class: 'sent-th' }, it.th)),
-        h('div', { class: 'sent-meta' },
-          it.label ? h('span', { class: 'phrase-romaji' }, it.label) : null,
-          h('span', { class: 'write-count' }, 'คัดแล้ว ' + rec.n + ' ครั้ง'),
-          NS.ui.speakBtn(it.sound, { label: '🔊', cls: 'btn-soft small', aria: 'ฟังประโยค' }))));
-
-      var cells = cellsOf(it.char);
-      var avail = Math.min(640, contentWidth(root));
-      board(makeLayout(cells, Math.max(4, Math.min(10, Math.floor(avail / 44)))), {
+      root.appendChild(sentHead(it));
+      board(sentLayout(it), {
         onScore: function (r, img) { NS.writeLog.recordSentence(it.id, it.char, r.score, img); },
         nextLabel: 'ประโยคถัดไป ▶',
         onNext: function () { sentId = (all[i + 1] || all[0]).id; render(); }
@@ -249,11 +352,13 @@
       var cell = single ? Math.max(180, Math.min(320, availW)) : Math.min(64, Math.floor(availW / L.cols));
       var W = L.cols * cell, H = L.rows * cell;
       var dpr = window.devicePixelRatio || 1;
-      var strokes = [], counted = false;
+      var strokes = [], counted = false, autoTimer = null, resetTimer = null;
       var cv = h('canvas', { class: 'write-canvas', width: String(W * dpr), height: String(H * dpr), style: 'width:' + W + 'px;aspect-ratio:' + W + ' / ' + H,
         'aria-label': 'พื้นที่คัด ' + L.cells.join('') });
       var ctx = cv.getContext('2d');
-      var out = h('div', { class: 'write-out', 'aria-live': 'polite' }, h('span', { class: 'muted small' }, 'ลากตามเส้นนำ แล้วกด "✓ ตรวจ"'));
+      var badge = h('div', { class: 'score-badge', hidden: true, 'aria-hidden': 'true' });
+      var out = h('div', { class: 'write-out', 'aria-live': 'polite' },
+        h('span', { class: 'muted small' }, autoCheck ? 'เขียนให้เสร็จแล้วยกมือค้างไว้ แอปจะตรวจให้เอง (หรือกดปุ่มตรวจ)' : 'ลากตามเส้นนำ แล้วกดปุ่มตรวจ'));
 
       function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
       function redraw() {
@@ -281,39 +386,70 @@
         drawStrokes(ctx, strokes, W, H, cell * (single ? 0.06 : 0.08));
       }
 
+      /* ล้างกลับเป็นเส้นนำอย่างเดียว */
+      function resetBoard() {
+        clearTimeout(resetTimer); resetTimer = null;
+        strokes = []; counted = false; badge.hidden = true; redraw();
+      }
+
+      /* ตรวจ: คิดคะแนน → บันทึก → แสดงคะแนน (โหมดอัตโนมัติ: 1 วินาทีแล้วล้าง) */
+      function check() {
+        clearTimeout(autoTimer);
+        if (!strokes.length) { NS.ui.toast('ลองเขียนก่อนนะ'); return; }
+        var r = scoreLayout(L, strokes);
+        var cls = r.score >= 70 ? 'match' : r.score >= 50 ? 'close' : 'miss';
+        var msg = r.score >= 70 ? '🎉 สวยมาก!' : r.score >= 50 ? '👍 ใช้ได้' : '💪 ลองอีกครั้ง';
+        var fresh = !counted;
+        if (fresh) {
+          o.onScore(r, thumbnail(L, strokes)); counted = true;
+          document.querySelectorAll('.write-count').forEach(function (el) { el.textContent = el.textContent.replace(/\d+/, function (n) { return String(Number(n) + 1); }); });
+        }
+        badge.className = 'score-badge ' + cls;
+        badge.innerHTML = '';
+        badge.appendChild(h('strong', null, String(r.score)));
+        badge.appendChild(h('span', null, 'คะแนน'));
+        badge.hidden = false;
+        out.innerHTML = '';
+        out.appendChild(h('div', { class: 'verdict ' + cls },
+          h('div', { class: 'verdict-head' }, h('strong', null, msg), h('span', { class: 'verdict-pct' }, 'ความใกล้เคียง ' + r.score + ' คะแนน')),
+          h('div', { class: 'small' }, 'ทับเส้นนำ ' + r.coverage + '% · ออกนอกเส้น ' + r.outside + '%'),
+          h('div', { class: 'small muted' }, fresh ? '📊 บันทึกลง "บันทึกการคัด" แล้ว' : 'ตรวจซ้ำ (ไม่นับเพิ่ม)')));
+        if (autoCheck) { resetTimer = setTimeout(resetBoard, 1000); timers.push(resetTimer); }
+      }
+
       var drawing = false;
       function pt(e) { var r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; }
-      cv.addEventListener('pointerdown', function (e) { drawing = true; counted = false; try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ } strokes.push([pt(e)]); redraw(); e.preventDefault(); });
+      cv.addEventListener('pointerdown', function (e) {
+        clearTimeout(autoTimer);
+        if (resetTimer) resetBoard();            // เริ่มเขียนใหม่ระหว่างที่ยังโชว์คะแนน → ล้างก่อน
+        drawing = true; counted = false;
+        try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ }
+        strokes.push([pt(e)]); redraw(); e.preventDefault();
+      });
       cv.addEventListener('pointermove', function (e) { if (!drawing) return; strokes[strokes.length - 1].push(pt(e)); redraw(); e.preventDefault(); });
-      ['pointerup', 'pointercancel'].forEach(function (ev) { cv.addEventListener(ev, function () { drawing = false; }); });
+      ['pointerup', 'pointercancel'].forEach(function (ev) {
+        cv.addEventListener(ev, function () {
+          if (!drawing) return;
+          drawing = false;
+          if (autoCheck) { clearTimeout(autoTimer); autoTimer = setTimeout(check, single ? 1200 : 2000); timers.push(autoTimer); }
+        });
+      });
 
       var guideBtn = h('button', { class: 'btn btn-soft', type: 'button', onclick: function () { showGuide = !showGuide; guideBtn.textContent = showGuide ? '🙈 ซ่อนเส้นนำ' : '👁 แสดงเส้นนำ'; redraw(); } },
         showGuide ? '🙈 ซ่อนเส้นนำ' : '👁 แสดงเส้นนำ');
-
       var hintBtn = h('button', { class: 'btn btn-soft', type: 'button', 'aria-pressed': String(showHint), onclick: function () {
         showHint = !showHint; hintBtn.setAttribute('aria-pressed', String(showHint));
         hintBtn.textContent = showHint ? '🔤 ซ่อนคำใบ้โรมันจิ' : '🔤 แสดงคำใบ้โรมันจิ'; redraw();
       } }, showHint ? '🔤 ซ่อนคำใบ้โรมันจิ' : '🔤 แสดงคำใบ้โรมันจิ');
 
-      root.appendChild(h('div', { class: 'write-wrap' }, cv));
+      root.appendChild(h('div', { class: 'write-wrap' }, h('div', { class: 'canvas-box' }, cv, badge)));
       root.appendChild(out);
       root.appendChild(h('div', { class: 'write-btns' },
-        h('button', { class: 'btn btn-primary', type: 'button', onclick: function () {
-          if (!strokes.length) { NS.ui.toast('ลองเขียนก่อนนะ'); return; }
-          var r = scoreLayout(L, strokes);
-          var msg = r.score >= 70 ? '🎉 สวยมาก!' : r.score >= 50 ? '👍 ใช้ได้' : '💪 ลองอีกครั้ง';
-          if (!counted) { o.onScore(r, thumbnail(L, strokes)); counted = true; }
-          out.innerHTML = '';
-          out.appendChild(h('div', { class: 'verdict ' + (r.score >= 70 ? 'match' : r.score >= 50 ? 'close' : 'miss') },
-            h('div', { class: 'verdict-head' }, h('strong', null, msg), h('span', { class: 'verdict-pct' }, r.score + ' คะแนน')),
-            h('div', { class: 'small' }, 'ทับเส้นนำ ' + r.coverage + '% · ออกนอกเส้น ' + r.outside + '%'),
-            h('div', { class: 'small muted' }, '📊 บันทึกลง "บันทึกการคัด" แล้ว')));
-          document.querySelectorAll('.write-count').forEach(function (el) { el.textContent = el.textContent.replace(/\d+/, function (n) { return String(Number(n) + 1); }); });
-        } }, '✓ ตรวจ'),
-        h('button', { class: 'btn btn-soft', type: 'button', onclick: function () { strokes = []; counted = false; redraw(); out.innerHTML = ''; } }, '🧽 ล้าง'),
+        h('button', { class: 'btn btn-primary', type: 'button', onclick: check }, '✓ ตรวจ'),
+        h('button', { class: 'btn btn-soft', type: 'button', onclick: function () { clearTimeout(autoTimer); resetBoard(); out.innerHTML = ''; } }, '🧽 ล้าง'),
         guideBtn, hintBtn,
-        h('button', { class: 'btn btn-soft', type: 'button', onclick: o.onNext }, o.nextLabel)));
-      root.appendChild(h('p', { class: 'muted small' }, 'คะแนน = % ที่ทับเส้นนำ × (100% − % ที่ออกนอกเส้น) · เส้นนำมาจากฟอนต์ของเครื่อง จึงหน้าตาต่างกันได้เล็กน้อย · ยังไม่มีการแสดงลำดับขีด'));
+        h('button', { class: 'btn ' + (randomOn ? 'btn-primary' : 'btn-soft'), type: 'button', onclick: o.onNext }, o.nextLabel)));
+      root.appendChild(h('p', { class: 'muted small' }, 'คะแนนความใกล้เคียง = % ที่ทับเส้นนำ × (100% − % ที่ออกนอกเส้น) · เส้นนำมาจากฟอนต์ของเครื่อง จึงหน้าตาต่างกันได้เล็กน้อย · ยังไม่มีการแสดงลำดับขีด'));
       redraw();
     }
 
