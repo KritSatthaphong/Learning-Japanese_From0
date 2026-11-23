@@ -59,16 +59,16 @@
     var demoOn = NS.demo.isOn();
     root.appendChild(h('section', { class: 'card settings-sec' },
       h('h2', null, '🧪 ข้อมูลตัวอย่าง (สำหรับสาธิต)'),
-      h('p', { class: 'muted small' }, 'โหลดข้อมูลสมมติ: เรียนทุกวัน 20 ส.ค. – 10 พ.ย. 2026 และผ่านทุกด่าน เพื่อดูว่าหน้าสถิติ ปฏิทิน และ streak แสดงผลอย่างไร ระหว่างนี้จะมีแถบ "ข้อมูลตัวอย่าง" แสดงตลอด ข้อมูลจริงจะถูกสำรองไว้และได้คืนเมื่อออกจากโหมด'),
+      h('p', { class: 'muted small' }, 'โหลดข้อมูลสมมติ: เรียนทุกวัน 20 ส.ค. – 10 พ.ย. 2026 ผ่านทุกด่าน พร้อมข้อมูลของทุกฟีเจอร์ (ทบทวน SRS ครบ 5 กล่อง, สมุดคำผิด, เด็คของฉัน, ประวัติฝึกพูด, Pre/Post Test, เกม, บันทึกการคัด และภาพลายมือตัวอย่าง) เพื่อดูว่าแต่ละหน้าแสดงผลอย่างไร ระหว่างนี้จะมีแถบ "ข้อมูลตัวอย่าง" แสดงตลอด และไม่ซิงก์ขึ้นบัญชี ข้อมูลจริงจะถูกสำรองไว้และได้คืนเมื่อออกจากโหมด'),
       demoOn
-        ? h('button', { class: 'btn btn-primary', type: 'button', onclick: function () { NS.demo.clear(); NS.app.updateBanner(); NS.ui.toast('กลับสู่ข้อมูลจริงแล้ว'); NS.router.refresh(); } }, '↩ ออกจากโหมดตัวอย่าง (คืนข้อมูลจริง)')
+        ? h('button', { class: 'btn btn-primary', type: 'button', onclick: function () { NS.demo.clear().then(function () { NS.app.updateBanner(); NS.ui.toast('กลับสู่ข้อมูลจริงแล้ว'); NS.router.refresh(); }); } }, '↩ ออกจากโหมดตัวอย่าง (คืนข้อมูลจริง)')
         : h('button', { class: 'btn btn-soft', type: 'button', onclick: function () {
             NS.ui.modal({
               title: 'โหลดข้อมูลตัวอย่าง?',
               body: h('div', null, h('p', null, 'ข้อมูลจริงตอนนี้จะถูกสำรองไว้ แล้วแทนที่ด้วยข้อมูลสมมติชั่วคราว'), h('p', { class: 'muted small' }, 'กด "ออกจากโหมดตัวอย่าง" เมื่อไหร่ก็ได้เพื่อคืนข้อมูลจริง')),
               actions: [
                 { label: 'ยกเลิก', cls: 'btn-soft' },
-                { label: 'โหลดข้อมูลตัวอย่าง', cls: 'btn-primary', onClick: function () { NS.demo.load(); NS.app.updateBanner(); NS.ui.toast('โหลดข้อมูลตัวอย่างแล้ว'); NS.router.go('#/home'); } }
+                { label: 'โหลดข้อมูลตัวอย่าง', cls: 'btn-primary', onClick: function () { NS.ui.toast('กำลังสร้างข้อมูลตัวอย่าง…'); NS.demo.load().then(function () { NS.app.updateBanner(); NS.ui.toast('โหลดข้อมูลตัวอย่างแล้ว'); NS.router.go('#/home'); }); } }
               ]
             });
           } }, '🧪 โหลดข้อมูลตัวอย่าง')));

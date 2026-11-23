@@ -2,6 +2,8 @@
  * demo.js — โหมด "ข้อมูลตัวอย่าง" สำหรับสาธิตว่าแอปทำงานอย่างไรเมื่อใช้ไปนานๆ
  * ------------------------------------------------------------
  * - สร้างข้อมูลสมมติ: เรียนทุกวันตั้งแต่ 20 ส.ค. 2026 ถึง 10 พ.ย. 2026 (XP คละกัน) และผ่านทุกด่าน
+ *   พร้อมข้อมูลของทุกฟีเจอร์: SRS ครบ 5 กล่อง, สมุดคำผิด, เด็คของฉัน, ประวัติฝึกพูด, Pre/Post Test,
+ *   คะแนนเกม, บันทึกการคัด และภาพลายมือตัวอย่าง (ติดป้าย demo แยกจากภาพจริง)
  * - ข้อมูลจริงจะถูกสำรองไว้ก่อน แล้วคืนให้เมื่อกด "ออกจากโหมดตัวอย่าง"
  * - ระหว่างใช้โหมดนี้ แอปจะแสดงแถบ "ข้อมูลตัวอย่าง" ตลอดเวลา (ปิดไม่ได้)
  *   เพื่อไม่ให้ภาพหน้าจอถูกเข้าใจผิดว่าเป็นผลการเรียนจริง
@@ -60,21 +62,137 @@
       levelItemIds(l).forEach(function (id) { if (!learned[id]) learned[id] = k; });
     });
 
-    // สถิติความแม่นยำประมาณ 85%
-    var answered = Math.round(totalCorrect / 0.85);
-    var byStage = {};
-    [1, 2, 3, 4, 5].forEach(function (st) {
-      var share = [0.2, 0.2, 0.2, 0.2, 0.2][st - 1];
-      var c = Math.round(totalCorrect * share);
-      byStage[st] = { correct: c, answered: Math.round(c / (0.8 + rand() * 0.12)) };
+    var today = S.key(new Date());
+    function dayKey(i) { return S.key(days[Math.max(0, Math.min(days.length - 1, i))]); }
+    function pick(arr) { return arr[Math.floor(rand() * arr.length)]; }
+    function plus(k, n) { var p = k.split('-').map(Number); return S.key(S.addDays(new Date(p[0], p[1] - 1, p[2]), n)); }
+
+    // สถิติความแม่นยำประมาณ 85% (แยกตามขั้น + ทบทวน/ฟังแยกเสียง/เกม/ฝึกพูด)
+    var byStage = {}, answered = 0, correct = 0;
+    [['1', 0.17], ['2', 0.15], ['3', 0.16], ['4', 0.14], ['5', 0.12], ['pairs', 0.05], ['review', 0.14], ['game', 0.05], ['speak', 0.02]].forEach(function (x) {
+      var c = Math.round(totalCorrect * x[1]);
+      var a = Math.round(c / (0.78 + rand() * 0.15));
+      byStage[x[0]] = { correct: c, answered: a };
+      correct += c; answered += a;
     });
 
-    return { xpByDay: xpByDay, levels: levels, learned: learned, stats: { answered: answered, correct: totalCorrect, byStage: byStage } };
+    // ทบทวนตามรอบ: ทุกสิ่งที่เรียนแล้ว กระจายครบทั้ง 5 กล่อง (1 / 2 / 4 / 7 / 14 วัน) มีบางส่วนถึงรอบวันนี้
+    var IV = NS.srs.INTERVALS, srs = {};
+    var ids = Object.keys(learned).filter(function (id) { var it = NS.content.itemById(id); return it && it.quiz !== false; });
+    ids.forEach(function (id, i) {
+      var r = rand();
+      var box = r < 0.15 ? 1 : r < 0.33 ? 2 : r < 0.53 ? 3 : r < 0.75 ? 4 : 5;
+      var due = rand() < 0.07 ? today : plus(today, 1 + Math.floor(rand() * IV[box - 1]));
+      srs[id] = { box: box, due: due };
+    });
+    // ให้แน่ใจว่าทุกกล่องมีรายการ และมีรายการที่ถึงรอบวันนี้
+    [1, 2, 3, 4, 5].forEach(function (b, i) { if (ids[i]) srs[ids[i]] = { box: b, due: i < 3 ? today : plus(today, IV[b - 1]) }; });
+
+    // สมุดคำผิด + จำนวนครั้งที่ผิดสะสม
+    var missTally = {}, mistakes = {};
+    var missPool = ids.filter(function (id) { return /^(h-|k-|v-|p-|g-)/.test(id); });
+    for (var m = 0; m < 26 && missPool.length; m++) {
+      var mid = missPool.splice(Math.floor(rand() * missPool.length), 1)[0];
+      missTally[mid] = 1 + Math.floor(rand() * 7);
+      if (m < 12) mistakes[mid] = { count: Math.min(missTally[mid], 1 + Math.floor(rand() * 4)), streak: Math.floor(rand() * 3), last: dayKey(days.length - 1 - Math.floor(rand() * 20)) };
+    }
+
+    // เด็คของฉัน
+    var deckSrc = [
+      ['大丈夫ですか', 'daijoubu desu ka', 'เป็นอะไรไหม / โอเคไหม', 'anime'],
+      ['なるほど', 'naruhodo', 'อ๋อ เข้าใจแล้ว', 'anime'],
+      ['おつかれさまです', 'otsukaresama desu', 'ขอบคุณที่เหนื่อยนะ (ทักทายหลังทำงาน)', 'friend'],
+      ['よろしくね', 'yoroshiku ne', 'ฝากตัวด้วยนะ (แบบเป็นกันเอง)', 'friend'],
+      ['ちょっと待って', 'chotto matte', 'รอแป๊บนึง', 'anime'],
+      ['また明日', 'mata ashita', 'เจอกันพรุ่งนี้', 'friend'],
+      ['いただきます', 'itadakimasu', '(พูดก่อนกินข้าว)', 'other'],
+      ['頑張ってください', 'ganbatte kudasai', 'สู้ๆ นะ', 'anime']
+    ];
+    var deck = deckSrc.map(function (d, i) {
+      var created = dayKey(10 + i * 9);
+      var id = 'd-demo-' + (i + 1);
+      srs[id] = { box: 1 + (i % 5), due: i % 3 === 0 ? today : plus(today, 1 + (i % 5)) };
+      return { id: id, jp: d[0], romaji: d[1], th: d[2], source: d[3], created: created };
+    });
+
+    // ประวัติฝึกพูด (ช่วงแรกตรงน้อย ช่วงหลังตรงมากขึ้น)
+    var phrases = NS.content.allPhrases(), speakHistory = [];
+    for (var sp = 0; sp < 70; sp++) {
+      var it = pick(phrases), progress = sp / 70;
+      var score = Math.round(Math.min(100, 30 + progress * 55 + rand() * 30));
+      var verdict = NS.normalize.verdictOf(score / 100);
+      var heard = verdict === 'match' ? it.jp : verdict === 'close' ? Array.from(it.jp).slice(0, Math.max(2, Math.round(it.jp.length * 0.6))).join('') : pick(['え？', 'すみ', 'あの']);
+      speakHistory.unshift({ id: it.id, date: dayKey(Math.floor(progress * (days.length - 1))), time: (9 + Math.floor(rand() * 12)) + ':' + String(Math.floor(rand() * 60)).padStart(2, '0'), heard: heard, score: score, verdict: verdict });
+    }
+
+    // Pre/Post Test
+    var tests = [
+      { label: 'Pre', date: dayKey(0), time: '19:05', p1: { c: 6, t: 20 }, p2: { c: 3, t: 10 }, p3: { c: 2, t: 18, mic: 18, self: 0 } },
+      { label: 'Post', date: dayKey(days.length - 1), time: '20:12', p1: { c: 19, t: 20 }, p2: { c: 9, t: 10 }, p3: { c: 14, t: 18, mic: 18, self: 0 } }
+    ];
+
+    // บันทึกการคัด: จำนวนครั้งต่างกัน (ให้ตารางมีสีครบทุกระดับ)
+    var chars = {}, sents = {}, samples = [];
+    NS.KANA.forEach(function (k, i) {
+      ['hira', 'kata'].forEach(function (script) {
+        if (k.noQuiz) return;
+        var base = script === 'hira' ? 1 : 0.6;
+        var r = rand() * base;
+        var n = r < 0.12 ? 0 : r < 0.35 ? 1 + Math.floor(rand() * 2) : r < 0.6 ? 3 + Math.floor(rand() * 3) : r < 0.82 ? 6 + Math.floor(rand() * 4) : 10 + Math.floor(rand() * 9);
+        if (!n) return;
+        chars[k[script]] = { n: n, best: 55 + Math.floor(rand() * 41) };
+        var keep = k.group === 'basic' ? Math.min(n, 3) : Math.min(n, 1);
+        for (var q = 0; q < keep; q++) samples.push({ kind: 'char', key: k[script], label: k[script], score: 45 + Math.floor(rand() * 50) });
+      });
+    });
+    phrases.filter(function (x) { return /^[ぁ-ゟ、。\s]+$/.test(x.char); }).slice(0, 14).forEach(function (it, i) {
+      var n = 1 + Math.floor(rand() * 5);
+      sents[it.id] = { n: n, best: 50 + Math.floor(rand() * 45) };
+      samples.push({ kind: 'sent', key: it.id, label: it.char, th: it.th, score: sents[it.id].best });
+    });
+
+    return {
+      xpByDay: xpByDay, levels: levels, learned: learned,
+      stats: { answered: answered, correct: correct, byStage: byStage },
+      srs: srs, mistakes: mistakes, missTally: missTally, deck: deck, speakHistory: speakHistory, tests: tests,
+      gameBest: { hira: 27, kata: 21, vocab: 16 },
+      writeLog: { chars: chars, sents: sents },
+      samples: samples, rand: rand
+    };
+  }
+
+  /* ภาพลายมือตัวอย่าง: ตัวอักษรเอียง/เลื่อนเล็กน้อยให้ดูเหมือนเขียนเอง บนพื้นขาว + เส้นนำจาง */
+  var FONT = '"Hiragino Maru Gothic ProN","Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo","Noto Sans JP","Noto Sans CJK JP",sans-serif';
+  function demoImage(text, rand) {
+    var cells = Array.from(text).filter(function (ch) { return !/[\s、。]/.test(ch); });
+    var single = cells.length === 1, cell = single ? 96 : 30;
+    var cols = single ? 1 : Math.min(cells.length, 8), rows = Math.ceil(cells.length / cols);
+    var c = document.createElement('canvas'); c.width = cols * cell; c.height = rows * cell;
+    var x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+    x.strokeStyle = '#e6e1d8'; x.lineWidth = 1;
+    for (var i = 0; i <= cols; i++) { x.beginPath(); x.moveTo(i * cell, 0); x.lineTo(i * cell, c.height); x.stroke(); }
+    for (var j = 0; j <= rows; j++) { x.beginPath(); x.moveTo(0, j * cell); x.lineTo(c.width, j * cell); x.stroke(); }
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    cells.forEach(function (ch, k) {
+      var cx = (k % cols) * cell + cell / 2, cy = Math.floor(k / cols) * cell + cell / 2;
+      var fs = (ch.length > 1 ? 0.5 : 0.78) * cell;
+      x.font = fs + 'px ' + FONT; x.fillStyle = '#e9e9e9'; x.fillText(ch, cx, cy + cell * 0.02);
+      x.save();
+      x.translate(cx + (rand() - 0.5) * cell * 0.08, cy + (rand() - 0.5) * cell * 0.08);
+      x.rotate((rand() - 0.5) * 0.14);
+      x.scale(0.9 + rand() * 0.1, 0.9 + rand() * 0.1);
+      x.font = 'bold ' + fs * 0.92 + 'px ' + FONT; x.fillStyle = '#1f1c19';
+      x.fillText(ch, 0, cell * 0.02);
+      x.restore();
+    });
+    try { return c.toDataURL('image/png'); } catch (e) { return null; }
   }
 
   NS.demo = {
     isOn: function () { return !!NS.store.get().demo; },
 
+    /* โหลดข้อมูลตัวอย่าง คืนค่า Promise (รอสร้างภาพลายมือตัวอย่างเสร็จ) */
     load: function () {
       var cur = NS.store.get();
       if (!cur.demo) {
@@ -88,8 +206,27 @@
         levels: data.levels,
         learned: data.learned,
         xpByDay: data.xpByDay,
-        stats: data.stats
+        stats: data.stats,
+        srs: data.srs,
+        mistakes: data.mistakes,
+        missTally: data.missTally,
+        deck: data.deck,
+        speakHistory: data.speakHistory,
+        tests: data.tests,
+        gameBest: data.gameBest,
+        writeLog: data.writeLog
       });
+      // ภาพลายมือตัวอย่าง: ติดป้าย demo ไว้ ไม่ปนกับภาพจริง ไม่ซิงก์ และลบทิ้งเมื่อออกจากโหมด
+      return NS.writeLog._clearDemo().then(function () {
+        var chain = Promise.resolve();
+        data.samples.forEach(function (s) {
+          chain = chain.then(function () {
+            var img = demoImage(s.label, data.rand);
+            return img ? NS.writeLog._add(Object.assign({}, s, { img: img, demo: true })) : null;
+          });
+        });
+        return chain;
+      }).then(function () { if (NS.cloud && NS.cloud.user) NS.cloud.syncNow(); });   // แสดงสถานะ "หยุดซิงก์ชั่วคราว"
     },
 
     clear: function () {
@@ -102,6 +239,7 @@
         NS.store.reset();
       }
       try { localStorage.removeItem(BACKUP_KEY); } catch (e) { /* ignore */ }
+      return NS.writeLog._clearDemo().then(function () { if (NS.cloud && NS.cloud.user) NS.cloud.syncNow(); });   // กลับมาซิงก์ข้อมูลจริง
     }
   };
 })();

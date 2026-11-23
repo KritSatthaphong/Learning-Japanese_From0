@@ -96,7 +96,10 @@
       });
     });
   }
+  function sameMode(r) { return !!r.demo === !!(NS.demo && NS.demo.isOn()); }
+
   function addSample(rec) {
+    if (NS.demo && NS.demo.isOn()) rec.demo = true;   // ภาพที่คัดระหว่างโหมดตัวอย่าง ถือเป็นภาพตัวอย่าง (ลบเมื่อออกจากโหมด)
     return writeRow(rec, 'add').then(function (id) {
       if (id != null && NS.cloud) NS.cloud.queueSamples();
       return id;
@@ -153,10 +156,11 @@
     charRec: function (ch) { return log().chars[ch] || { n: 0, best: 0 }; },
     sentRec: function (id) { return log().sents[id] || { n: 0, best: 0 }; },
 
-    /* ภาพลายมือทั้งหมดของตัว/ประโยคนี้ (ใหม่สุดก่อน) */
-    samples: function (kind, key) { return readAll(function (r) { return r.kind === kind && r.key === key; }); },
+    /* ภาพลายมือทั้งหมดของตัว/ประโยคนี้ (ใหม่สุดก่อน)
+       ระหว่างโหมดข้อมูลตัวอย่าง แสดงเฉพาะภาพตัวอย่าง · นอกโหมด แสดงเฉพาะภาพจริง */
+    samples: function (kind, key) { return readAll(function (r) { return r.kind === kind && r.key === key && sameMode(r); }); },
     /* ภาพลายมือทั้งหมด (ใหม่สุดก่อน) */
-    allSamples: function () { return readAll(null); },
+    allSamples: function () { return readAll(sameMode); },
 
     removeSample: function (id) {
       return getRow(id).then(function (row) {
@@ -175,7 +179,22 @@
     },
 
     /* ใช้โดยระบบซิงก์ (cloud.js) */
-    _rows: function () { return readAll(null); },
+    _rows: function () { return readAll(function (r) { return !r.demo; }); },   // ไม่รวมภาพตัวอย่าง (ไม่ซิงก์)
+    /* ลบภาพลายมือตัวอย่างทั้งหมด (ใช้ตอนเข้า/ออกโหมดข้อมูลตัวอย่าง) */
+    _clearDemo: function () {
+      return readAll(function (r) { return r.demo; }).then(function (rows) {
+        return openDB().then(function (db) {
+          if (!db || !rows.length) return;
+          return new Promise(function (resolve) {
+            try {
+              var tx = db.transaction(STORE, 'readwrite'), st = tx.objectStore(STORE);
+              rows.forEach(function (r) { st.delete(r.id); });
+              tx.oncomplete = resolve; tx.onerror = resolve;
+            } catch (e) { resolve(); }
+          });
+        });
+      });
+    },
     _add: function (rec) { return writeRow(rec, 'add'); },
     _put: function (rec) { return writeRow(rec, 'put'); },
 
