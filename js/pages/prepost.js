@@ -1,13 +1,13 @@
 /*
  * prepost.js — แบบทดสอบก่อน-หลังเรียน (Pre/Post Test)
  * ------------------------------------------------------------
- * ข้อสอบชุดเดิมทุกครั้ง (สุ่มด้วย seed คงที่) ไม่บอกเฉลยระหว่างสอบ และไม่ให้ XP
- *   ส่วน 1 อ่านตัวอักษร 20 ตัว (ฮิรางานะ 10 + คาตากานะ 10) → เลือกโรมันจิ
- *   ส่วน 2 ฟัง 10 วลี → เลือกความหมายไทย
- *   ส่วน 3 พูด 18 วลี (หมวดละ 3) ผ่านเมื่อตรง ≥ 80%
+ * ข้อสอบชุดที่ 2 (data/test.js) รูปแบบตาม JLPT N5 — ข้อเดิมทุกครั้ง ไม่บอกเฉลยระหว่างสอบ และไม่ให้ XP
+ *   ส่วน 1 อ่าน 20 ข้อ (อ่านคันจิ / เขียนให้ถูก / เติมคำ / คำช่วย) คำสั่งญี่ปุ่น + ปุ่ม EN แปลคำถาม
+ *   ส่วน 2 ฟัง 10 ข้อ (คำสั้นๆ 5 + ประโยค 5)
+ *   ส่วน 3 พูด 18 ข้อ อ่านออกเสียงประโยค N5 ผ่านเมื่อตรง ≥ 80%
  *          ไมค์ใช้ไม่ได้ → "ตรวจเอง" และบันทึกว่าตรวจด้วยวิธีไหน
- * บันทึกผลพร้อมป้าย Pre/Post และวันที่ แสดงกราฟเทียบ และส่งออก CSV
- * หมายเหตุ: ถ้าแก้ไฟล์ data/*.js ข้อสอบอาจเปลี่ยน ควรทำ Pre และ Post ด้วยข้อมูลชุดเดียวกัน
+ * บันทึกผลพร้อมป้าย Pre/Post วันที่ และเลขชุดข้อสอบ (v) แสดงกราฟเทียบ และส่งออก CSV
+ * ผลของชุดเก่า (ชุด 1 = อ่านตัวอักษร/ฟังวลี/พูดวลี ไม่มี v) ยังเก็บไว้ในตาราง แต่ไม่นำมาเทียบในกราฟ
  */
 (function () {
   'use strict';
@@ -30,61 +30,57 @@
   }
 
   /* ---------- สร้างข้อสอบ (ได้ชุดเดิมทุกครั้ง) ---------- */
+  var VERSION = NS.TEST.VERSION;
+  function versionOf(t) { return t.v || 1; }
+
+  // ตัวเลือกตัวแรกในข้อมูลคือคำตอบที่ถูก → สลับลำดับด้วย seed คงที่
+  function mcq(d, r, type, prompt) {
+    var choices = d.choices.map(function (c, i) {
+      return { id: d.id + '-' + i, label: c, jp: !d.pic, pic: !!d.pic };
+    });
+    var long = !d.pic && d.choices.some(function (c) { return c.length > 5; });
+    return {
+      type: type, answerId: d.id + '-0', label: d.q, labelJp: true, en: d.en,
+      prompt: prompt, layout: long ? 'list' : null,
+      choices: sshuffle(choices, r)
+    };
+  }
+
   function buildTest() {
     var r = rng(SEED);
-    var basic = NS.KANA.filter(function (k) { return k.group === 'basic' && !k.noQuiz; });
-    var part1 = [];
-    ['hira', 'kata'].forEach(function (script) {
-      var items = basic.map(function (k) { return NS.content.kanaItem(k, script); });
-      sshuffle(items, r).slice(0, 10).forEach(function (it) {
-        var others = sshuffle(items.filter(function (x) { return x.soundKey !== it.soundKey; }), r).slice(0, 3);
-        part1.push({
-          type: 'test-read', item: it, answerId: it.id, label: 'ตัวนี้อ่านว่าอะไร?',
-          prompt: { text: it.char, jp: true },
-          choices: sshuffle([it].concat(others), r).map(function (c) { return { id: c.id, label: c.label, jp: false }; })
-        });
-      });
+    var part1 = NS.TEST.reading.map(function (d) {
+      return mcq(d, r, 'test-read', { text: d.text, jp: true, small: d.text.length > 4, spaced: / /.test(d.text) });
     });
-
-    var phrases = NS.content.allPhrases();
-    var part2 = sshuffle(phrases, r).slice(0, 10).map(function (it) {
-      var used = {}; used[it.th] = true;
-      var others = sshuffle(phrases, r).filter(function (c) { if (used[c.th]) return false; used[c.th] = true; return true; }).slice(0, 3);
-      return {
-        type: 'test-listen', item: it, answerId: it.id, label: 'ฟังแล้วเลือกความหมาย',
-        prompt: { audio: it.sound },
-        choices: sshuffle([it].concat(others), r).map(function (c) { return { id: c.id, label: c.th, jp: false }; })
-      };
+    var part2 = NS.TEST.listening.map(function (d) {
+      return mcq(d, r, 'test-listen', { audio: d.audio });
     });
-
-    var part3 = [];
-    NS.progress.stage(5).levels.forEach(function (l) {
-      sshuffle(NS.content.phraseItems(l), r).slice(0, 3).forEach(function (it) { part3.push(it); });
+    var part3 = NS.TEST.speaking.map(function (d) {
+      return { id: 'test2-' + d.id, kind: 'test', jp: d.jp, char: d.kana, kana: d.kana, alt: d.alt || [], sound: d.jp };
     });
     return { part1: part1, part2: part2, part3: part3 };
   }
 
   /* ---------- CSV ---------- */
-  var HEAD = ['date', 'time', 'label', 'read_correct', 'read_total', 'read_pct', 'listen_correct', 'listen_total', 'listen_pct', 'speak_passed', 'speak_total', 'speak_pct', 'speak_check_method'];
+  var HEAD = ['date', 'time', 'label', 'test_version', 'read_correct', 'read_total', 'read_pct', 'listen_correct', 'listen_total', 'listen_pct', 'speak_passed', 'speak_total', 'speak_pct', 'speak_check_method'];
   function pct(x) { return x.t ? Math.round(x.c / x.t * 100) : 0; }
   function methodOf(p3) { return p3.mic && p3.self ? 'mixed' : p3.self ? 'self' : 'mic'; }
   function csv() {
     var rows = [HEAD.join(',')];
     NS.store.get().tests.forEach(function (t) {
-      rows.push([t.date, t.time, t.label, t.p1.c, t.p1.t, pct(t.p1), t.p2.c, t.p2.t, pct(t.p2), t.p3.c, t.p3.t, pct(t.p3), methodOf(t.p3)].join(','));
+      rows.push([t.date, t.time, t.label, versionOf(t), t.p1.c, t.p1.t, pct(t.p1), t.p2.c, t.p2.t, pct(t.p2), t.p3.c, t.p3.t, pct(t.p3), methodOf(t.p3)].join(','));
     });
     return rows.join('\n');
   }
 
   /* ---------- กราฟแท่งเทียบ Pre กับ Post (SVG) ---------- */
   function latest(label) {
-    var ts = NS.store.get().tests.filter(function (t) { return t.label === label; });
+    var ts = NS.store.get().tests.filter(function (t) { return t.label === label && versionOf(t) === VERSION; });
     return ts[ts.length - 1] || null;
   }
   function chart() {
     var pre = latest('Pre'), post = latest('Post');
     var series = [pre && { name: 'Pre', cls: 's-pre', t: pre }, post && { name: 'Post', cls: 's-post', t: post }].filter(Boolean);
-    var parts = [{ key: 'p1', label: 'อ่านตัวอักษร' }, { key: 'p2', label: 'ฟัง' }, { key: 'p3', label: 'พูด' }];
+    var parts = [{ key: 'p1', label: 'อ่าน' }, { key: 'p2', label: 'ฟัง' }, { key: 'p3', label: 'พูด' }];
     var W = 340, H = 210, L = 34, R = 8, T = 18, B = 30;
     var pw = W - L - R, ph = H - T - B, gw = pw / parts.length, bw = 30, gap = 2;
     var ns = 'http://www.w3.org/2000/svg';
@@ -136,12 +132,12 @@
       root.appendChild(h('a', { href: '#/more', class: 'back' }, '← เพิ่มเติม'));
       root.appendChild(h('h1', { class: 'page-title' }, 'Pre/Post Test'));
       root.appendChild(h('section', { class: 'card stack-sm' },
-        h('p', null, 'ข้อสอบชุดเดียวกันทุกครั้ง ใช้วัดผลก่อนเรียน (Pre) และหลังเรียน (Post)'),
+        h('p', null, 'ข้อสอบชุดเดียวกันทุกครั้ง ใช้วัดผลก่อนเรียน (Pre) และหลังเรียน (Post) · รูปแบบข้อตามข้อสอบ JLPT N5 (แต่งข้อใหม่ ไม่ใช่ข้อสอบจริง)'),
         h('ul', { class: 'pp-parts' },
-          h('li', null, h('strong', null, 'ส่วน 1 อ่าน: '), 'ตัวอักษร 20 ตัว → เลือกโรมันจิ'),
-          h('li', null, h('strong', null, 'ส่วน 2 ฟัง: '), '10 วลี → เลือกความหมายไทย'),
-          h('li', null, h('strong', null, 'ส่วน 3 พูด: '), '18 วลี (หมวดละ 3) ผ่านเมื่อตรง ≥ 80%')),
-        h('p', { class: 'muted small' }, 'ระหว่างสอบจะไม่บอกเฉลย และไม่ได้ XP · ใช้เวลาประมาณ 10–15 นาที · ส่วนพูดต้องใช้ไมค์ (Chrome ผ่าน localhost หรือ GitHub Pages) ถ้าใช้ไม่ได้ ให้ตรวจเองได้'),
+          h('li', null, h('strong', null, 'ส่วน 1 อ่าน 20 ข้อ: '), 'อ่านคันจิ · เขียนคำให้ถูก · เติมคำ · คำช่วย (คำถามภาษาญี่ปุ่น กดปุ่ม EN ดูคำแปลได้)'),
+          h('li', null, h('strong', null, 'ส่วน 2 ฟัง 10 ข้อ: '), 'ฟังคำสั้นๆ 5 ข้อ + ประโยค 5 ข้อ'),
+          h('li', null, h('strong', null, 'ส่วน 3 พูด 18 ข้อ: '), 'อ่านออกเสียงประโยค N5 ผ่านเมื่อตรง ≥ 80%')),
+        h('p', { class: 'muted small' }, 'ระหว่างสอบจะไม่บอกเฉลย และไม่ได้ XP · ใช้เวลาประมาณ 15–20 นาที · ส่วนพูดต้องใช้ไมค์ (Chrome ผ่าน localhost หรือ GitHub Pages) ถ้าใช้ไม่ได้ ให้ตรวจเองได้'),
         h('div', { class: 'field' }, h('span', null, 'ครั้งนี้เป็นการสอบ'),
           NS.ui.segmented([{ value: 'Pre', label: 'Pre (ก่อนเรียน)' }, { value: 'Post', label: 'Post (หลังเรียน)' }], label, function (v) { label = v; home(); }, 'ป้ายการสอบ')),
         h('button', { class: 'btn btn-primary btn-lg btn-block', type: 'button', onclick: start }, '▶ เริ่มสอบ ' + label)));
@@ -150,13 +146,17 @@
       if (!tests.length) { root.appendChild(h('p', { class: 'card notice' }, 'ยังไม่มีผลสอบ')); return; }
       root.appendChild(h('section', { class: 'card' },
         h('h3', null, latest('Post') && latest('Pre') ? 'เทียบ Pre กับ Post ล่าสุด' : 'ผลล่าสุด'),
-        chart(),
-        latest('Post') ? null : h('p', { class: 'muted small' }, 'ทำ Post หลังเรียนจบ เพื่อดูกราฟเทียบก่อน-หลัง')));
+        latest('Pre') || latest('Post') ? chart() : null,
+        latest('Pre') || latest('Post') ? null : h('p', { class: 'muted small' }, 'ยังไม่มีผลของข้อสอบชุดที่ ' + VERSION),
+        latest('Post') ? null : h('p', { class: 'muted small' }, 'ทำ Post หลังเรียนจบ เพื่อดูกราฟเทียบก่อน-หลัง'),
+        tests.some(function (t) { return versionOf(t) !== VERSION; })
+          ? h('p', { class: 'muted small' }, 'ผลของข้อสอบชุดเก่า (ชุด 1) ยังอยู่ในตาราง แต่ไม่นำมาเทียบในกราฟ เพราะข้อสอบคนละชุด') : null));
       root.appendChild(h('div', { class: 'table-wrap card' }, h('table', { class: 'pp-table' },
         h('caption', { class: 'muted small' }, 'ผลทุกครั้ง (ตารางนี้คือข้อมูลเดียวกับกราฟ)'),
-        h('thead', null, h('tr', null, ['วันที่', 'ป้าย', 'อ่าน', 'ฟัง', 'พูด', 'ตรวจพูด', ''].map(function (x) { return h('th', { scope: 'col' }, x); }))),
+        h('thead', null, h('tr', null, ['วันที่', 'ป้าย', 'ชุด', 'อ่าน', 'ฟัง', 'พูด', 'ตรวจพูด', ''].map(function (x) { return h('th', { scope: 'col' }, x); }))),
         h('tbody', null, tests.map(function (t, i) {
           return h('tr', null, h('td', null, t.date), h('td', null, h('span', { class: 'badge ' + (t.label === 'Pre' ? 's-pre-badge' : 's-post-badge') }, t.label)),
+            h('td', { class: 'small' }, String(versionOf(t))),
             h('td', null, t.p1.c + '/' + t.p1.t), h('td', null, t.p2.c + '/' + t.p2.t), h('td', null, t.p3.c + '/' + t.p3.t),
             h('td', { class: 'small' }, { mic: 'ไมค์', self: 'ตรวจเอง', mixed: 'ผสม' }[methodOf(t.p3)]),
             h('td', null, h('button', { class: 'icon-btn small', type: 'button', 'aria-label': 'ลบผลสอบนี้', onclick: function () { confirmDel(i); } }, '✕')));
@@ -176,8 +176,8 @@
     var test, result;
     function start() {
       test = buildTest();
-      result = { label: label, date: NS.store.today(), time: new Date().toTimeString().slice(0, 5), p1: { c: 0, t: test.part1.length }, p2: { c: 0, t: test.part2.length }, p3: { c: 0, t: test.part3.length, mic: 0, self: 0 } };
-      runPart('ส่วน 1/3 · อ่านตัวอักษร', test.part1, 'p1', function () {
+      result = { label: label, v: VERSION, date: NS.store.today(), time: new Date().toTimeString().slice(0, 5), p1: { c: 0, t: test.part1.length }, p2: { c: 0, t: test.part2.length }, p3: { c: 0, t: test.part3.length, mic: 0, self: 0 } };
+      runPart('ส่วน 1/3 · อ่าน', test.part1, 'p1', function () {
         runPart('ส่วน 2/3 · ฟัง', test.part2, 'p2', speakPart);
       });
     }
@@ -216,18 +216,17 @@
           i++;
           if (i < test.part3.length) show(); else finish();
         } }, i === test.part3.length - 1 ? 'ดูผลสอบ' : 'ถัดไป →');
-        var state = h('p', { class: 'muted small center', 'aria-live': 'polite' }, 'พูดวลีนี้ (ลองได้หลายครั้ง ใช้ผลที่ดีที่สุด)');
+        var state = h('p', { class: 'muted small center', 'aria-live': 'polite' }, 'อ่านประโยคนี้ออกเสียง (ลองได้หลายครั้ง ใช้ผลที่ดีที่สุด)');
         function setResult(passed, m, pctv) {
           if (!best || passed || m === 'self') best = { passed: passed };
           method = m;
           state.textContent = m === 'self' ? ('ตรวจเอง: ' + (passed ? 'ผ่าน' : 'ไม่ผ่าน')) : ('ผลที่ดีที่สุด: ' + (best.passed ? 'ผ่าน' : 'ยังไม่ผ่าน') + ' (ครั้งล่าสุด ' + pctv + '%)');
           nextBtn.disabled = false;
         }
+        // ข้อสอบอ่านออกเสียง: แสดงรูปเขียนจริง + คำอ่านคานะ ไม่มีโรมันจิ คำแปล หรือเสียงต้นแบบ
         root.appendChild(h('section', { class: 'card sc-target' },
-          NS.ui.jp(it.char, 'sc-kana'),
-          h('div', { class: 'phrase-romaji' }, it.label),
-          h('div', { class: 'phrase-th' }, it.th),
-          NS.ui.speakBtn(it.sound, { label: '🔊 ฟังต้นแบบ' })));
+          NS.ui.jp(it.jp, 'sc-kana'),
+          it.kana !== it.jp.replace(/[。、]/g, '') ? NS.ui.jp(it.kana, 'phrase-romaji') : null));
         root.appendChild(h('section', { class: 'card' },
           NS.speakBox(it, function (r) { setResult(r.pct >= 80, 'mic', r.pct); }),
           state,
