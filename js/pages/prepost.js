@@ -1,13 +1,13 @@
 /*
  * prepost.js — แบบทดสอบก่อน-หลังเรียน (Pre/Post Test)
  * ------------------------------------------------------------
- * ข้อสอบชุดที่ 2 (data/test.js) รูปแบบตาม JLPT N5 — ข้อเดิมทุกครั้ง ไม่บอกเฉลยระหว่างสอบ และไม่ให้ XP
- *   ส่วน 1 อ่าน 20 ข้อ (อ่านคันจิ / เขียนให้ถูก / เติมคำ / คำช่วย) คำสั่งญี่ปุ่น + ปุ่ม EN แปลคำถาม
- *   ส่วน 2 ฟัง 10 ข้อ (คำสั้นๆ 5 + ประโยค 5)
- *   ส่วน 3 พูด 18 ข้อ อ่านออกเสียงประโยค N5 ผ่านเมื่อตรง ≥ 80%
+ * ข้อสอบชุดที่ 3 (data/test.js) ฉบับง่าย ใช้คำ/วลีในบทเรียน — ข้อเดิมทุกครั้ง ไม่บอกเฉลยระหว่างสอบ และไม่ให้ XP
+ *   ส่วน 1 อ่าน 20 ข้อ เห็นคำญี่ปุ่น → เลือกความหมายไทย (คำสั่งญี่ปุ่น + ปุ่ม EN)
+ *   ส่วน 2 ฟัง 10 ข้อ ฟังเสียง → เลือกความหมายไทย
+ *   ส่วน 3 พูด 20 ข้อ พูดตามเสียง 14 + อ่านออกเสียงเอง 6 ผ่านเมื่อตรง ≥ 80%
  *          ไมค์ใช้ไม่ได้ → "ตรวจเอง" และบันทึกว่าตรวจด้วยวิธีไหน
  * บันทึกผลพร้อมป้าย Pre/Post วันที่ และเลขชุดข้อสอบ (v) แสดงกราฟเทียบ และส่งออก CSV
- * ผลของชุดเก่า (ชุด 1 = อ่านตัวอักษร/ฟังวลี/พูดวลี ไม่มี v) ยังเก็บไว้ในตาราง แต่ไม่นำมาเทียบในกราฟ
+ * ผลของชุดเก่า (ชุด 1 ไม่มี v, ชุด 2 = รูปแบบ JLPT N5) ยังเก็บไว้ในตาราง แต่ไม่นำมาเทียบในกราฟ
  */
 (function () {
   'use strict';
@@ -36,9 +36,9 @@
   // ตัวเลือกตัวแรกในข้อมูลคือคำตอบที่ถูก → สลับลำดับด้วย seed คงที่
   function mcq(d, r, type, prompt) {
     var choices = d.choices.map(function (c, i) {
-      return { id: d.id + '-' + i, label: c, jp: !d.pic, pic: !!d.pic };
+      return { id: d.id + '-' + i, label: c, th: true };
     });
-    var long = !d.pic && d.choices.some(function (c) { return c.length > 5; });
+    var long = d.choices.some(function (c) { return c.length > 14; });
     return {
       type: type, answerId: d.id + '-0', label: d.q, labelJp: true, en: d.en,
       prompt: prompt, layout: long ? 'list' : null,
@@ -54,8 +54,12 @@
     var part2 = NS.TEST.listening.map(function (d) {
       return mcq(d, r, 'test-listen', { audio: d.audio });
     });
+    var phrases = NS.content.allPhrases();
     var part3 = NS.TEST.speaking.map(function (d) {
-      return { id: 'test2-' + d.id, kind: 'test', jp: d.jp, char: d.kana, kana: d.kana, alt: d.alt || [], sound: d.jp };
+      var p = phrases.filter(function (x) { return x.id === 'p-' + d.phrase; })[0];
+      if (!p) throw new Error('ไม่พบวลี ' + d.phrase + ' ใน data/phrases.js');
+      // ใช้รูปเขียน/รูปที่ไมค์อาจได้ยินจากบทเรียน แต่ id แยกของข้อสอบ (ไม่ไปปนสถิติฝึกพูด)
+      return { id: 'test' + VERSION + '-' + d.id, kind: 'test', mode: d.mode, jp: p.jp, char: p.char, kana: p.char, alt: p.alt || [], th: p.th, sound: p.sound };
     });
     return { part1: part1, part2: part2, part3: part3 };
   }
@@ -132,12 +136,12 @@
       root.appendChild(h('a', { href: '#/more', class: 'back' }, '← เพิ่มเติม'));
       root.appendChild(h('h1', { class: 'page-title' }, 'Pre/Post Test'));
       root.appendChild(h('section', { class: 'card stack-sm' },
-        h('p', null, 'ข้อสอบชุดเดียวกันทุกครั้ง ใช้วัดผลก่อนเรียน (Pre) และหลังเรียน (Post) · รูปแบบข้อตามข้อสอบ JLPT N5 (แต่งข้อใหม่ ไม่ใช่ข้อสอบจริง)'),
+        h('p', null, 'ข้อสอบชุดเดียวกันทุกครั้ง ใช้วัดผลก่อนเรียน (Pre) และหลังเรียน (Post) · ใช้คำและวลีจากบทเรียนในแอป (ฮิรางานะ 80% คาตากานะ 20%)'),
         h('ul', { class: 'pp-parts' },
-          h('li', null, h('strong', null, 'ส่วน 1 อ่าน 20 ข้อ: '), 'อ่านคันจิ · เขียนคำให้ถูก · เติมคำ · คำช่วย (คำถามภาษาญี่ปุ่น กดปุ่ม EN ดูคำแปลได้)'),
-          h('li', null, h('strong', null, 'ส่วน 2 ฟัง 10 ข้อ: '), 'ฟังคำสั้นๆ 5 ข้อ + ประโยค 5 ข้อ'),
-          h('li', null, h('strong', null, 'ส่วน 3 พูด 18 ข้อ: '), 'อ่านออกเสียงประโยค N5 ผ่านเมื่อตรง ≥ 80%')),
-        h('p', { class: 'muted small' }, 'ระหว่างสอบจะไม่บอกเฉลย และไม่ได้ XP · ใช้เวลาประมาณ 15–20 นาที · ส่วนพูดต้องใช้ไมค์ (Chrome ผ่าน localhost หรือ GitHub Pages) ถ้าใช้ไม่ได้ ให้ตรวจเองได้'),
+          h('li', null, h('strong', null, 'ส่วน 1 อ่าน 20 ข้อ: '), 'เห็นคำญี่ปุ่น → เลือกความหมายไทย (คำถามภาษาญี่ปุ่น กดปุ่ม EN ดูคำแปลได้)'),
+          h('li', null, h('strong', null, 'ส่วน 2 ฟัง 10 ข้อ: '), 'ฟังเสียง → เลือกความหมายไทย'),
+          h('li', null, h('strong', null, 'ส่วน 3 พูด 20 ข้อ: '), 'พูดตามเสียง 14 ข้อ + อ่านออกเสียงเอง 6 ข้อ ผ่านเมื่อตรง ≥ 80%')),
+        h('p', { class: 'muted small' }, 'ระหว่างสอบจะไม่บอกเฉลย และไม่ได้ XP · ใช้เวลาประมาณ 15 นาที · ส่วนพูดต้องใช้ไมค์ (Chrome ผ่าน localhost หรือ GitHub Pages) ถ้าใช้ไม่ได้ ให้ตรวจเองได้'),
         h('div', { class: 'field' }, h('span', null, 'ครั้งนี้เป็นการสอบ'),
           NS.ui.segmented([{ value: 'Pre', label: 'Pre (ก่อนเรียน)' }, { value: 'Post', label: 'Post (หลังเรียน)' }], label, function (v) { label = v; home(); }, 'ป้ายการสอบ')),
         h('button', { class: 'btn btn-primary btn-lg btn-block', type: 'button', onclick: start }, '▶ เริ่มสอบ ' + label)));
@@ -150,7 +154,7 @@
         latest('Pre') || latest('Post') ? null : h('p', { class: 'muted small' }, 'ยังไม่มีผลของข้อสอบชุดที่ ' + VERSION),
         latest('Post') ? null : h('p', { class: 'muted small' }, 'ทำ Post หลังเรียนจบ เพื่อดูกราฟเทียบก่อน-หลัง'),
         tests.some(function (t) { return versionOf(t) !== VERSION; })
-          ? h('p', { class: 'muted small' }, 'ผลของข้อสอบชุดเก่า (ชุด 1) ยังอยู่ในตาราง แต่ไม่นำมาเทียบในกราฟ เพราะข้อสอบคนละชุด') : null));
+          ? h('p', { class: 'muted small' }, 'ผลของข้อสอบชุดเก่ายังอยู่ในตาราง แต่ไม่นำมาเทียบในกราฟ เพราะข้อสอบคนละชุด') : null));
       root.appendChild(h('div', { class: 'table-wrap card' }, h('table', { class: 'pp-table' },
         h('caption', { class: 'muted small' }, 'ผลทุกครั้ง (ตารางนี้คือข้อมูลเดียวกับกราฟ)'),
         h('thead', null, h('tr', null, ['วันที่', 'ป้าย', 'ชุด', 'อ่าน', 'ฟัง', 'พูด', 'ตรวจพูด', ''].map(function (x) { return h('th', { scope: 'col' }, x); }))),
@@ -216,17 +220,22 @@
           i++;
           if (i < test.part3.length) show(); else finish();
         } }, i === test.part3.length - 1 ? 'ดูผลสอบ' : 'ถัดไป →');
-        var state = h('p', { class: 'muted small center', 'aria-live': 'polite' }, 'อ่านประโยคนี้ออกเสียง (ลองได้หลายครั้ง ใช้ผลที่ดีที่สุด)');
+        var repeat = it.mode === 'repeat';
+        var state = h('p', { class: 'muted small center', 'aria-live': 'polite' },
+          (repeat ? 'ฟังแล้วพูดตาม' : 'อ่านประโยคนี้ออกเสียงเอง (ไม่มีเสียงให้ฟัง)') + ' · ลองได้หลายครั้ง ใช้ผลที่ดีที่สุด');
         function setResult(passed, m, pctv) {
           if (!best || passed || m === 'self') best = { passed: passed };
           method = m;
           state.textContent = m === 'self' ? ('ตรวจเอง: ' + (passed ? 'ผ่าน' : 'ไม่ผ่าน')) : ('ผลที่ดีที่สุด: ' + (best.passed ? 'ผ่าน' : 'ยังไม่ผ่าน') + ' (ครั้งล่าสุด ' + pctv + '%)');
           nextBtn.disabled = false;
         }
-        // ข้อสอบอ่านออกเสียง: แสดงรูปเขียนจริง + คำอ่านคานะ ไม่มีโรมันจิ คำแปล หรือเสียงต้นแบบ
+        // พูดตาม: คานะ + ความหมายไทย + ปุ่มฟัง (เล่นให้อัตโนมัติ) · อ่านเอง: คานะอย่างเดียว ไม่มีเสียง · ไม่มีโรมันจิทั้งคู่
         root.appendChild(h('section', { class: 'card sc-target' },
-          NS.ui.jp(it.jp, 'sc-kana'),
-          it.kana !== it.jp.replace(/[。、]/g, '') ? NS.ui.jp(it.kana, 'phrase-romaji') : null));
+          h('div', { class: 'badge' }, repeat ? '🔊 พูดตามเสียง' : '👀 อ่านออกเสียงเอง'),
+          NS.ui.jp(it.char, 'sc-kana'),
+          repeat ? h('div', { class: 'phrase-th' }, it.th) : null,
+          repeat ? NS.ui.speakBtn(it.sound, { label: '🔊 ฟังอีกครั้ง' }) : null));
+        if (repeat) setTimeout(function () { NS.speech.speak(it.sound); }, 300);
         root.appendChild(h('section', { class: 'card' },
           NS.speakBox(it, function (r) { setResult(r.pct >= 80, 'mic', r.pct); }),
           state,
