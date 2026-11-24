@@ -253,6 +253,10 @@ a.hub-item:hover { border-color: var(--primary); }
 .progress { flex: 1; height: 10px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
 .progress .bar { height: 100%; background: var(--primary); border-radius: 999px; transition: width .3s; }
 .q-label { margin: 16px 0 6px; font-weight: 600; color: var(--muted); text-align: center; }
+.q-label-jp { display: block; font-size: 1.1rem; color: var(--text); }
+.q-en-btn { margin-top: 6px; }
+.q-en { margin-top: 6px; font-weight: 500; font-size: .95rem; }
+.choice-pic { font-size: 2.4rem; font-weight: 700; line-height: 1.2; }
 .q-prompt { display: grid; justify-items: center; gap: 8px; padding: 12px 0 20px; }
 .q-big { font-size: clamp(4rem, 22vw, 6.5rem); line-height: 1.1; }
 .q-latin { font-size: clamp(2.6rem, 14vw, 4rem); font-weight: 700; }
@@ -395,6 +399,8 @@ a.hub-item:hover { border-color: var(--primary); }
 
 
 /* ---------- ประโยค / วลี ---------- */
+/* ประโยคที่เว้นวรรคแบบข้อสอบ N5: ตัดบรรทัดตรงช่องว่างเท่านั้น */
+.q-spaced { word-break: keep-all; overflow-wrap: anywhere; }
 .q-big.q-sent { font-size: clamp(1.5rem, 7vw, 2.2rem); text-align: center; line-height: 1.5; }
 .choices.list { grid-template-columns: 1fr; }
 .choices.list .choice { min-height: 56px; align-items: flex-start; padding-left: 32px; text-align: left; }

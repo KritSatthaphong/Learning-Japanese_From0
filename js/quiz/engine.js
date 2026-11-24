@@ -37,6 +37,19 @@
     document.addEventListener('keydown', onKey);
     NS.router.onLeave(function () { document.removeEventListener('keydown', onKey); });
 
+    /* คำสั่ง: ถ้าเป็นภาษาญี่ปุ่น (labelJp) และมีคำแปล (en) จะมีปุ่ม EN ให้กดดูคำแปล — แปลเฉพาะคำถาม ไม่แปลตัวเลือก */
+    function renderLabel(q) {
+      if (!q.labelJp) return h('div', { class: 'q-label' }, q.label);
+      var en = q.en ? h('div', { class: 'q-en', lang: 'en', hidden: true }, q.en) : null;
+      var btn = q.en ? h('button', { class: 'btn btn-ghost small q-en-btn', type: 'button', 'aria-expanded': 'false',
+        onclick: function () {
+          en.hidden = !en.hidden;
+          btn.setAttribute('aria-expanded', String(!en.hidden));
+          btn.textContent = en.hidden ? '🌐 EN แปลคำถาม' : '🌐 ซ่อนคำแปล';
+        } }, '🌐 EN แปลคำถาม') : null;
+      return h('div', { class: 'q-label' }, NS.ui.jp(q.label, 'q-label-jp'), btn, en);
+    }
+
     function renderPrompt(p) {
       if (p.audio) {
         return h('div', { class: 'q-prompt q-audio' },
@@ -46,7 +59,7 @@
             onclick: function () { NS.speech.speak(p.audio, { rate: 0.5 }); } }, '🐢 ฟังช้า'));
       }
       return h('div', { class: 'q-prompt' },
-        p.jp ? NS.ui.jp(p.text, 'q-big' + (p.small ? ' q-sent' : '')) : h('span', { class: 'q-big ' + (p.th ? 'q-th' : 'q-latin') }, p.text),
+        p.jp ? NS.ui.jp(p.text, 'q-big' + (p.small ? ' q-sent' : '') + (p.spaced ? ' q-spaced' : '')) : h('span', { class: 'q-big ' + (p.th ? 'q-th' : 'q-latin') }, p.text),
         p.sub ? h('div', { class: 'muted' }, p.sub) : null);
     }
 
@@ -67,7 +80,7 @@
       else q.choices.forEach(function (c, ci) {
         var b = h('button', { class: 'choice', type: 'button', onclick: function () { pick(c, b); } },
           h('span', { class: 'choice-num', 'aria-hidden': 'true' }, String(ci + 1)),
-          c.jp ? NS.ui.jp(c.label, 'choice-main choice-jp' + (c.label.length > 3 ? ' long' : '')) : h('span', { class: 'choice-main choice-latin' }, c.label),
+          c.jp ? NS.ui.jp(c.label, 'choice-main choice-jp' + (c.label.length > 3 ? ' long' : '')) : h('span', { class: 'choice-main ' + (c.pic ? 'choice-pic' : 'choice-latin') }, c.label),
           c.sub ? h('span', { class: 'choice-sub' }, c.sub) : null);
         b._choice = c;
         btns.push(b);
@@ -78,7 +91,7 @@
       current = { q: q, btns: btns, fb: fb, next: null };
 
       root.appendChild(h('div', { class: 'quiz' }, top,
-        h('div', { class: 'q-label' }, q.label),
+        renderLabel(q),
         renderPrompt(q.prompt), choices, fb));
 
       if (q.prompt.audio) setTimeout(function () { NS.speech.speak(q.prompt.audio); }, 200);

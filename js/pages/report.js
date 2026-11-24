@@ -53,7 +53,7 @@
     d.acc.forEach(function (a) { if (a.answered) L.push('- ' + a.name + ': ' + a.pct + '% (' + a.correct + '/' + a.answered + ')'); });
     L.push('');
     L.push('Pre vs Post Test:');
-    L.push('- อ่านตัวอักษร: Pre ' + pctText(d.pre, 'p1') + ' → Post ' + pctText(d.post, 'p1'));
+    L.push('- อ่าน: Pre ' + pctText(d.pre, 'p1') + ' → Post ' + pctText(d.post, 'p1'));
     L.push('- ฟัง: Pre ' + pctText(d.pre, 'p2') + ' → Post ' + pctText(d.post, 'p2'));
     L.push('- พูด: Pre ' + pctText(d.pre, 'p3') + ' → Post ' + pctText(d.post, 'p3'));
     L.push('');
@@ -116,7 +116,7 @@
     root.appendChild(h('section', { class: 'card' }, h('h2', { class: 'section-title flush' }, 'Pre vs Post Test'),
       d.pre || d.post ? h('table', { class: 'pp-table' },
         h('thead', null, h('tr', null, ['', 'Pre', 'Post', 'เปลี่ยนแปลง'].map(function (x) { return h('th', { scope: 'col' }, x); }))),
-        h('tbody', null, [['อ่านตัวอักษร', 'p1'], ['ฟัง', 'p2'], ['พูด', 'p3']].map(function (r) {
+        h('tbody', null, [['อ่าน', 'p1'], ['ฟัง', 'p2'], ['พูด', 'p3']].map(function (r) {
           var a = d.pre ? NS.prepost.pct(d.pre[r[1]]) : null, b = d.post ? NS.prepost.pct(d.post[r[1]]) : null;
           return h('tr', null, h('td', null, r[0]), h('td', null, pctText(d.pre, r[1])), h('td', null, pctText(d.post, r[1])),
             h('td', null, a != null && b != null ? (b - a >= 0 ? '+' : '') + (b - a) + '%' : '-'));
