@@ -1,7 +1,8 @@
 /*
  * demo.js — โหมด "ข้อมูลตัวอย่าง" สำหรับสาธิตว่าแอปทำงานอย่างไรเมื่อใช้ไปนานๆ
  * ------------------------------------------------------------
- * - สร้างข้อมูลสมมติ: เรียนทุกวันตั้งแต่ 20 ส.ค. 2026 ถึง 10 พ.ย. 2026 (XP คละกัน) และผ่านทุกด่าน
+ * - สร้างข้อมูลสมมติ: เรียนทุกวัน 91 วันย้อนหลังจนถึงวันที่กดโหลด (รวมวันนี้ — heatmap 12 สัปดาห์เต็มทุกช่อง
+ *   และ streak ไม่ขาด) XP คละกัน และผ่านทุกด่าน · ถ้าเปิดโหมดค้างไว้หลายวัน ให้กดโหลดใหม่เพื่อเลื่อนช่วงวันที่
  *   พร้อมข้อมูลของทุกฟีเจอร์: SRS 271 รายการ ครบ 5 กล่อง (น้อย → มาก), สมุดคำผิด, เด็คของฉัน, ประวัติฝึกพูด, Pre/Post Test,
  *   คะแนนเกม, บันทึกการคัด และภาพลายมือตัวอย่าง (ติดป้าย demo แยกจากภาพจริง)
  * - ข้อมูลจริงจะถูกสำรองไว้ก่อน แล้วคืนให้เมื่อกด "ออกจากโหมดตัวอย่าง"
@@ -13,8 +14,8 @@
   var NS = window.NS = window.NS || {};
 
   var BACKUP_KEY = 'nihongo-survival-v1-backup-before-demo';
-  var START = new Date(2026, 7, 20);   // 20 ส.ค. 2026 (เดือนเริ่มนับจาก 0)
-  var END = new Date(2026, 10, 10);    // 10 พ.ย. 2026
+  // 91 วัน (13 สัปดาห์) มากกว่า heatmap 12 สัปดาห์ (ย้อนได้สูงสุด 83 วัน) จึงเต็มทุกช่อง
+  var DAY_COUNT = 91;
 
   /* สุ่มแบบกำหนด seed (ได้ผลเหมือนเดิมทุกครั้ง) */
   function rng(seed) {
@@ -37,8 +38,9 @@
 
   function build() {
     var S = NS.stats, rand = rng(20260820);
+    var now = new Date(), END = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     var days = [];
-    for (var d = new Date(START); d <= END; d = S.addDays(d, 1)) days.push(new Date(d));
+    for (var di = DAY_COUNT - 1; di >= 0; di--) days.push(S.addDays(END, -di));
 
     // XP รายวัน: คละกัน มีวันที่เรียนนิดเดียว วันปกติ และวันที่เรียนเยอะ
     var xpByDay = {}, totalCorrect = 0;
@@ -48,8 +50,11 @@
       else if (r < 0.75) xp = 40 + Math.floor(rand() * 5) * 10;   // 40–80
       else xp = 90 + Math.floor(rand() * 12) * 10;                // 90–200
       xpByDay[S.key(day)] = xp;
-      totalCorrect += xp / 10;
     });
+    // วันนี้ทำครบเป้าหมายรายวันแล้ว
+    var todayKey = S.key(END);
+    xpByDay[todayKey] = Math.max(xpByDay[todayKey], Math.ceil(S.goal() / 10) * 10);
+    Object.keys(xpByDay).forEach(function (k) { totalCorrect += xpByDay[k] / 10; });
 
     // ผ่านทุกด่านเรียงตามลำดับ กระจายตลอดช่วงเวลา
     var levels = {}, learned = {};
