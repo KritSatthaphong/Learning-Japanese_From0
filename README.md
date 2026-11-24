@@ -87,7 +87,7 @@ A mobile-first, Thai-language web app that takes an absolute beginner from kana 
 - **Review:** Leitner SRS (5 boxes: 1/2/4/7/14 days), mistake notebook, minimal-pair listening drills, 60-second matching game.
 - **Kana chart:** gojūon / dakuten / yōon tables, tap to hear + Thai mnemonics, printable on A4; finger/mouse writing practice with a scored guide.
 - **Speaking:** Speaking Check (speech recognition, normalised kana/kanji comparison → match / close / miss), record-and-compare, phrasebook, role-play prompt library for ChatGPT/Claude voice mode.
-- **Measurement:** Pre/Post test in JLPT N5 format (newly written items, not copied from the real exam): reading 20, listening 10, speaking 18 (read aloud) with a comparison bar chart and CSV export; one-page PGP report (copy as text / CSV / print).
+- **Measurement:** easy Pre/Post test built from the app's own lessons (80% hiragana, 20% katakana): reading 20 (word → Thai meaning), listening 10 (audio → Thai meaning), speaking 20 (14 listen-and-repeat + 6 read-aloud sentences) with a comparison bar chart and CSV export; one-page PGP report (copy as text / CSV / print).
 
 Uses only browser APIs (`speechSynthesis`, `SpeechRecognition`, `MediaRecorder`, `localStorage`, `IndexedDB`); no paid services. **Optional accounts:** if `js/config.js` holds a Supabase project URL + anon key, users can sign up / log in (email + password) and progress plus handwriting samples sync across devices via two RLS-protected tables (`supabase/setup.sql`). Without it, all data stays in the browser.
 

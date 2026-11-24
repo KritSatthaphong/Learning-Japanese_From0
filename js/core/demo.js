@@ -138,8 +138,8 @@
 
     // Pre/Post Test
     var tests = [
-      { label: 'Pre', v: 2, date: dayKey(0), time: '19:05', p1: { c: 6, t: 20 }, p2: { c: 3, t: 10 }, p3: { c: 2, t: 18, mic: 18, self: 0 } },
-      { label: 'Post', v: 2, date: dayKey(days.length - 1), time: '20:12', p1: { c: 19, t: 20 }, p2: { c: 9, t: 10 }, p3: { c: 14, t: 18, mic: 18, self: 0 } }
+      { label: 'Pre', v: 3, date: dayKey(0), time: '19:05', p1: { c: 6, t: 20 }, p2: { c: 3, t: 10 }, p3: { c: 2, t: 20, mic: 20, self: 0 } },
+      { label: 'Post', v: 3, date: dayKey(days.length - 1), time: '20:12', p1: { c: 19, t: 20 }, p2: { c: 9, t: 10 }, p3: { c: 16, t: 20, mic: 20, self: 0 } }
     ];
 
     // บันทึกการคัด: จำนวนครั้งต่างกัน (ให้ตารางมีสีครบทุกระดับ)
